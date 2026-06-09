@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Edit Override{% endblock %}
+{% block content %}
+<div class="page-header">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{{ url_for('overrides') }}">Overrides</a></li>
+      <li class="breadcrumb-item active">Edit</li>
+    </ol>
+  </nav>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header">Edit Programme Override</div>
+      <div class="card-body">
+        <form action="{{ url_for('override_edit', override_id=override.id) }}"
+              method="post" enctype="multipart/form-data">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Channel</label>
+              <select name="channel_id" class="form-select" required>
+                {% for ch in channels %}
+                  <option value="{{ ch.tvg_id }}"
+                    {% if ch.tvg_id == override.channel_id %}selected{% endif %}>
+                    {{ ch.name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Date</label>
+              <input type="date" name="date" class="form-control"
+                     value="{{ override.date }}" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Start Time</label>
+              <input type="time" name="start" class="form-control"
+                     value="{{ override.start }}" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">End Time</label>
+              <input type="time" name="end" class="form-control"
+                     value="{{ override.end }}" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Type</label>
+              <select name="override_type" class="form-select">
+                <option value="event" {% if override.override_type == 'event' %}selected{% endif %}>🗓️ Special Event</option>
+                <option value="sports" {% if override.override_type == 'sports' %}selected{% endif %}>🏆 Sports Coverage</option>
+                <option value="cancellation" {% if override.override_type == 'cancellation' %}selected{% endif %}>❌ Cancellation</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Title</label>
+              <input type="text" name="title" class="form-control"
+                     value="{{ override.title }}" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Description</label>
+              <textarea name="description" class="form-control" rows="3">{{ override.description or '' }}</textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Programme Image</label>
+              {% if override.image %}
+                <div class="mb-2">
+                  <img src="{{ url_for('uploaded_file', path='images/' + override.image) }}"
+                       alt="" style="max-height:80px;border-radius:4px;">
+                  <small class="text-muted ms-2">Current image</small>
+                </div>
+              {% endif %}
+              <input type="file" name="image" class="form-control" accept="image/*">
+            </div>
+          </div>
+          <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a href="{{ url_for('overrides') }}" class="btn btn-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

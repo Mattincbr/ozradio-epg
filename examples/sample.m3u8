@@ -1,0 +1,16 @@
+#EXTM3U x-tvg-url="epg.xml"
+
+#EXTINF:-1 tvg-id="abc.brisbane" tvg-name="ABC Radio Brisbane" tvg-logo="https://www.abc.net.au/res/img/abc-logo.png" group-title="Radio - ABC",ABC Radio Brisbane
+http://live-radio.net.au/abc-brisbane/aac
+
+#EXTINF:-1 tvg-id="abc.sydney" tvg-name="ABC Radio Sydney" tvg-logo="https://www.abc.net.au/res/img/abc-logo.png" group-title="Radio - ABC",ABC Radio Sydney
+http://live-radio.net.au/abc-sydney/aac
+
+#EXTINF:-1 tvg-id="abc.melbourne" tvg-name="ABC Radio Melbourne" tvg-logo="https://www.abc.net.au/res/img/abc-logo.png" group-title="Radio - ABC",ABC Radio Melbourne
+http://live-radio.net.au/abc-melbourne/aac
+
+#EXTINF:-1 tvg-id="triple.j" tvg-name="triple j" tvg-logo="https://www.abc.net.au/triplej/images/triplej-logo.png" group-title="Radio - ABC",triple j
+http://live-radio.net.au/triple-j/aac
+
+#EXTINF:-1 tvg-id="abc.classic" tvg-name="ABC Classic" tvg-logo="https://www.abc.net.au/classic/images/abc-classic-logo.png" group-title="Radio - ABC",ABC Classic
+http://live-radio.net.au/abc-classic/aac

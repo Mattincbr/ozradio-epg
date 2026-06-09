@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+{% block title %}Schedule — {{ channel.name }}{% endblock %}
+{% block content %}
+<div class="page-header d-flex align-items-center gap-3">
+  <div>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="{{ url_for('channels') }}">Channels</a></li>
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('channel_edit', tvg_id=channel.tvg_id) }}">{{ channel.name }}</a>
+        </li>
+        <li class="breadcrumb-item active">Schedule</li>
+      </ol>
+    </nav>
+  </div>
+  <div class="ms-auto d-flex gap-2">
+    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#scrapeModal">
+      <i class="bi bi-cloud-download me-1"></i>Scrape from website
+    </button>
+    <button class="btn btn-primary btn-sm" onclick="saveSchedule()">
+      <i class="bi bi-floppy me-1"></i>Save Schedule
+    </button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <span>
+      <i class="bi bi-calendar-week me-2"></i>Weekly Schedule — {{ channel.name }}
+      <span class="text-muted small ms-2">Timezone: {{ channel.get('timezone', 'UTC') }}</span>
+    </span>
+    <div class="dropdown">
+      <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+        <i class="bi bi-plus me-1"></i>Add Day Pattern
+      </button>
+      <ul class="dropdown-menu">
+        <li><a class="dropdown-item" onclick="addDayPattern('weekdays')">Weekdays (Mon–Fri)</a></li>
+        <li><a class="dropdown-item" onclick="addDayPattern('saturday')">Saturday</a></li>
+        <li><a class="dropdown-item" onclick="addDayPattern('sunday')">Sunday</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" onclick="addDayPattern('monday')">Monday</a></li>
+        <li><a class="dropdown-item" onclick="addDayPattern('tuesday')">Tuesday</a></li>
+        <li><a class="dropdown-item" onclick="addDayPattern('wednesday')">Wednesday</a></li>
+        <li><a class="dropdown-item" onclick="addDayPattern('thursday')">Thursday</a></li>
+        <li><a class="dropdown-item" onclick="addDayPattern('friday')">Friday</a></li>
+        <li><a class="dropdown-item" onclick="addDayPattern('weekend')">Weekend (Sat–Sun)</a></li>
+        <li><a class="dropdown-item" onclick="addDayPattern('default')">Default (fallback)</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <ul class="nav nav-tabs px-3 pt-2" id="dayTabs" role="tablist"></ul>
+    <div class="tab-content p-3" id="dayTabContent"></div>
+  </div>
+</div>
+
+<!-- Scrape Modal -->
+<div class="modal fade" id="scrapeModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form action="{{ url_for('schedule_scrape', tvg_id=channel.tvg_id) }}" method="post">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Scrape Schedule from Website</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p class="text-muted small">
+            Supports ABC Australia station pages:<br>
+            <code>https://www.abc.net.au/{city}/station-epg</code>
+          </p>
+          <div class="mb-3">
+            <label class="form-label">Station EPG URL</label>
+            <input type="url" name="url" class="form-control"
+                   placeholder="https://www.abc.net.au/brisbane/station-epg"
+                   value="{{ channel.get('website','') or '' }}">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Scrape & Save</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Initial schedule data from server
+const scheduleData = {{ schedule | tojson }};
+const channelId = {{ channel.tvg_id | tojson }};
+
+const DAY_LABELS = {
+  weekdays: 'Weekdays (Mon–Fri)', saturday: 'Saturday', sunday: 'Sunday',
+  monday: 'Monday', tuesday: 'Tuesday', wednesday: 'Wednesday',
+  thursday: 'Thursday', friday: 'Friday', weekend: 'Weekend', default: 'Default'
+};
+
+function init() {
+  const tabs = document.getElementById('dayTabs');
+  const content = document.getElementById('dayTabContent');
+  const days = Object.keys(scheduleData);
+
+  if (days.length === 0) {
+    addDayPattern('weekdays');
+    return;
+  }
+
+  days.forEach((day, i) => {
+    addTab(day, scheduleData[day] || [], i === 0);
+  });
+}
+
+function addDayPattern(day) {
+  if (document.getElementById(`tab-${day}`)) {
+    document.querySelector(`#tab-${day} button`).click();
+    return;
+  }
+  addTab(day, [], false);
+  // Activate new tab
+  const btn = document.querySelector(`#tab-${day} button`);
+  new bootstrap.Tab(btn).show();
+}
+
+function addTab(day, slots, active) {
+  const tabs = document.getElementById('dayTabs');
+  const content = document.getElementById('dayTabContent');
+  const label = DAY_LABELS[day] || day;
+
+  const li = document.createElement('li');
+  li.className = 'nav-item';
+  li.id = `tab-${day}`;
+  li.innerHTML = `
+    <button class="nav-link ${active ? 'active' : ''}" data-bs-toggle="tab"
+            data-bs-target="#panel-${day}" type="button">${label}</button>
+  `;
+  tabs.appendChild(li);
+
+  const panel = document.createElement('div');
+  panel.className = `tab-pane fade ${active ? 'show active' : ''}`;
+  panel.id = `panel-${day}`;
+  panel.dataset.day = day;
+  panel.innerHTML = `
+    <div class="table-responsive">
+      <table class="table table-sm schedule-table">
+        <thead>
+          <tr>
+            <th style="width:90px">Start</th>
+            <th>Title</th>
+            <th style="width:180px">Presenter</th>
+            <th>Description</th>
+            <th style="width:90px">Duration<br><small class="text-muted fw-normal">mins</small></th>
+            <th style="width:40px"></th>
+          </tr>
+        </thead>
+        <tbody class="slot-body"></tbody>
+      </table>
+    </div>
+    <div class="d-flex gap-2 mt-2">
+      <button type="button" class="btn btn-sm btn-outline-primary"
+              onclick="addSlot('${day}')">
+        <i class="bi bi-plus-lg me-1"></i>Add Slot
+      </button>
+      <button type="button" class="btn btn-sm btn-outline-danger ms-auto"
+              onclick="removeDay('${day}')">
+        <i class="bi bi-trash me-1"></i>Remove Day
+      </button>
+    </div>
+  `;
+  content.appendChild(panel);
+
+  slots.forEach(slot => addSlotRow(day, slot));
+}
+
+function addSlot(day) {
+  addSlotRow(day, {});
+}
+
+function addSlotRow(day, slot) {
+  const tbody = document.querySelector(`#panel-${day} .slot-body`);
+  const tr = document.createElement('tr');
+  const dur = slot.duration != null ? slot.duration : '';
+  tr.innerHTML = `
+    <td>
+      <input type="time" class="form-control form-control-sm" data-field="start"
+             value="${slot.start || ''}" required>
+    </td>
+    <td>
+      <input type="text" class="form-control form-control-sm" data-field="title"
+             value="${escHtml(slot.title || '')}" placeholder="Programme title">
+    </td>
+    <td>
+      <input type="text" class="form-control form-control-sm" data-field="presenter"
+             value="${escHtml(slot.presenter || '')}" placeholder="Presenter name">
+    </td>
+    <td>
+      <input type="text" class="form-control form-control-sm" data-field="description"
+             value="${escHtml(slot.description || '')}" placeholder="Short description">
+    </td>
+    <td>
+      <input type="number" class="form-control form-control-sm" data-field="duration"
+             value="${dur}" min="1" placeholder="auto">
+    </td>
+    <td>
+      <button type="button" class="btn btn-xs btn-outline-danger" onclick="this.closest('tr').remove()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function removeDay(day) {
+  if (!confirm(`Remove the "${DAY_LABELS[day]||day}" pattern?`)) return;
+  document.getElementById(`tab-${day}`)?.remove();
+  document.getElementById(`panel-${day}`)?.remove();
+  // Activate first remaining tab
+  const first = document.querySelector('#dayTabs .nav-link');
+  if (first) new bootstrap.Tab(first).show();
+}
+
+function collectSchedule() {
+  const result = {};
+  document.querySelectorAll('#dayTabContent .tab-pane').forEach(panel => {
+    const day = panel.dataset.day;
+    const slots = [];
+    panel.querySelectorAll('.slot-body tr').forEach(row => {
+      const get = f => row.querySelector(`[data-field="${f}"]`)?.value?.trim() || '';
+      const start = get('start');
+      const title = get('title');
+      if (!start || !title) return;
+      const slot = {start, title};
+      const presenter = get('presenter');
+      const description = get('description');
+      const durStr = get('duration');
+      if (presenter) slot.presenter = presenter;
+      if (description) slot.description = description;
+      if (durStr) slot.duration = parseInt(durStr, 10);
+      slots.push(slot);
+    });
+    // Sort by start time
+    slots.sort((a, b) => a.start.localeCompare(b.start));
+    if (slots.length) result[day] = slots;
+  });
+  return result;
+}
+
+async function saveSchedule() {
+  const schedule = collectSchedule();
+  if (Object.keys(schedule).length === 0) {
+    showToast('Add at least one slot before saving.', 'warning');
+    return;
+  }
+  try {
+    const r = await fetch(window.location.href, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(schedule)
+    });
+    const d = await r.json();
+    if (d.success) showToast('Schedule saved!', 'success');
+    else showToast(d.error || 'Save failed', 'danger');
+  } catch (e) {
+    showToast('Network error: ' + e.message, 'danger');
+  }
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+init();
+</script>
+{% endblock %}

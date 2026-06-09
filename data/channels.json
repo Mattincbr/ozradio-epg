@@ -1,0 +1,14 @@
+{
+  "channels": [
+    {
+      "tvg_id": "test.fm",
+      "name": "Test FM",
+      "url": "http://stream.example.com/test",
+      "logo": null,
+      "group": null,
+      "timezone": "UTC",
+      "enabled": true,
+      "source": "manual"
+    }
+  ]
+}

@@ -1,0 +1,152 @@
+channel:
+  id: abc.brisbane
+  name: ABC Radio Brisbane
+  timezone: Australia/Brisbane
+  website: https://www.abc.net.au/brisbane/station-epg
+
+schedule:
+  weekdays:
+    - start: "00:00"
+      title: ABC Overnights
+      description: Overnight programming on ABC Radio Brisbane.
+      duration: 330
+
+    - start: "05:30"
+      title: ABC News Breakfast
+      description: Start your day with the latest news, sport and weather.
+      duration: 180
+
+    - start: "08:30"
+      title: Brisbane Mornings
+      presenter: Craig Zonca and Loretta Ryan
+      description: >
+        Your mornings with Craig Zonca and Loretta Ryan — local stories,
+        interviews, music and conversation.
+      duration: 90
+
+    - start: "10:00"
+      title: Focus
+      presenter: Steve Austin
+      description: In-depth interviews and local issues with Steve Austin.
+      duration: 120
+
+    - start: "12:00"
+      title: ABC News Radio Midday
+      description: Live national and international news coverage.
+      duration: 30
+
+    - start: "12:30"
+      title: Afternoons
+      presenter: Kelly Higgins-Devine
+      description: Music, stories and conversation with Kelly Higgins-Devine.
+      duration: 210
+
+    - start: "16:00"
+      title: Drive
+      presenter: Terri Begley
+      description: Afternoon drive with news and entertainment.
+      duration: 120
+
+    - start: "18:00"
+      title: PM
+      description: The day's top stories from around Australia and the world.
+      duration: 30
+
+    - start: "18:30"
+      title: Evening
+      presenter: Jessica Strutt
+      description: Music and conversation into the evening.
+      duration: 90
+
+    - start: "20:00"
+      title: Late Night Live
+      presenter: Phillip Adams
+      description: Wide-ranging conversations about ideas and culture.
+      duration: 60
+
+    - start: "21:00"
+      title: The Philosopher's Zone
+      description: Adventures in the world of ideas.
+      duration: 30
+
+    - start: "21:30"
+      title: Nightlife
+      presenter: Tony Delroy
+      description: Australia's most popular national talk programme.
+      duration: 150
+
+  saturday:
+    - start: "00:00"
+      title: ABC Overnights
+      duration: 360
+
+    - start: "06:00"
+      title: Saturday Morning
+      presenter: Rebecca Levingston
+      description: The best of Brisbane every Saturday morning.
+      duration: 240
+
+    - start: "10:00"
+      title: Weekend Breakfast
+      description: Weekend news and entertainment.
+      duration: 120
+
+    - start: "12:00"
+      title: Weekend Afternoons
+      presenter: Joel Carnegie
+      description: Stories and music to fill your Saturday afternoon.
+      duration: 300
+
+    - start: "17:00"
+      title: The Music Show
+      description: Exploring the world of classical and contemporary music.
+      duration: 60
+
+    - start: "18:00"
+      title: Saturday Evening
+      description: Evening programming on ABC Radio Brisbane.
+      duration: 240
+
+    - start: "22:00"
+      title: ABC Overnights
+      duration: null
+
+  sunday:
+    - start: "00:00"
+      title: ABC Overnights
+      duration: 360
+
+    - start: "06:00"
+      title: Sunday Morning
+      presenter: Cassie McCullagh
+      description: Thoughtful conversation and great music to start your Sunday.
+      duration: 240
+
+    - start: "10:00"
+      title: Weekend Breakfast
+      description: Weekend news and entertainment.
+      duration: 120
+
+    - start: "12:00"
+      title: Sunday Afternoons
+      description: Relaxed conversation and music.
+      duration: 300
+
+    - start: "17:00"
+      title: Sunday Night with John Cleary
+      description: Religion, ethics and spirituality.
+      duration: 60
+
+    - start: "18:00"
+      title: Correspondents Report
+      description: News and analysis from ABC correspondents around the world.
+      duration: 30
+
+    - start: "18:30"
+      title: Sunday Evening
+      description: Evening programming on ABC Radio Brisbane.
+      duration: 210
+
+    - start: "22:00"
+      title: ABC Overnights
+      duration: null
