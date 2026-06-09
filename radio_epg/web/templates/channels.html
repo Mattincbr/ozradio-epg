@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}Channels{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1><i class="bi bi-broadcast me-2"></i>Channels</h1>
+  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addChannelModal">
+    <i class="bi bi-plus-lg me-1"></i>Add Channel
+  </button>
+</div>
+
+{% if channels %}
+<div class="table-responsive">
+  <table class="table table-hover align-middle" id="channels-table">
+    <thead>
+      <tr>
+        <th width="50">Logo</th>
+        <th>Name</th>
+        <th>TVG ID</th>
+        <th>Group</th>
+        <th>Schedule</th>
+        <th>Enabled</th>
+        <th width="120">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ch in channels %}
+      <tr id="row-{{ ch.tvg_id|replace('.','_') }}">
+        <td>
+          {% set logo = channel_logo_url(ch) %}
+          {% if logo %}
+            <img src="{{ logo }}" alt="" class="ch-thumb" onerror="this.style.display='none'">
+          {% else %}
+            <div class="ch-thumb-placeholder"><i class="bi bi-broadcast-pin"></i></div>
+          {% endif %}
+        </td>
+        <td><strong>{{ ch.name }}</strong></td>
+        <td><code class="text-muted">{{ ch.tvg_id }}</code></td>
+        <td><span class="text-muted small">{{ ch.group or '—' }}</span></td>
+        <td>
+          {% if has_schedule(ch.tvg_id) %}
+            <a href="{{ url_for('schedule_edit', tvg_id=ch.tvg_id) }}"
+               class="badge bg-success-subtle text-success-emphasis text-decoration-none">
+              <i class="bi bi-calendar-check me-1"></i>Edit
+            </a>
+          {% else %}
+            <a href="{{ url_for('schedule_edit', tvg_id=ch.tvg_id) }}"
+               class="badge bg-warning-subtle text-warning-emphasis text-decoration-none">
+              <i class="bi bi-plus me-1"></i>Create
+            </a>
+          {% endif %}
+        </td>
+        <td>
+          <div class="form-check form-switch mb-0">
+            <input type="checkbox" class="form-check-input" role="switch"
+                   id="toggle-{{ ch.tvg_id|replace('.','_') }}"
+                   {% if ch.get('enabled', True) %}checked{% endif %}
+                   onchange="toggleChannel('{{ ch.tvg_id }}', this)">
+          </div>
+        </td>
+        <td>
+          <a href="{{ url_for('channel_edit', tvg_id=ch.tvg_id) }}"
+             class="btn btn-xs btn-outline-secondary" title="Edit">
+            <i class="bi bi-pencil"></i>
+          </a>
+          <form action="{{ url_for('channel_delete', tvg_id=ch.tvg_id) }}"
+                method="post" class="d-inline"
+                onsubmit="return confirm('Remove {{ ch.name }}?')">
+            <button type="submit" class="btn btn-xs btn-outline-danger" title="Remove">
+              <i class="bi bi-trash"></i>
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <i class="bi bi-broadcast-pin"></i>
+  <p>No channels yet. Import from a playlist or add one manually.</p>
+  <a href="{{ url_for('playlist') }}" class="btn btn-primary me-2">Playlist Builder</a>
+  <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#addChannelModal">
+    Add Manually
+  </button>
+</div>
+{% endif %}
+
+<!-- Add Channel Modal -->
+<div class="modal fade" id="addChannelModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form action="{{ url_for('channel_add') }}" method="post">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Channel</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">TVG ID <span class="text-danger">*</span></label>
+            <input type="text" name="tvg_id" class="form-control" placeholder="e.g. abc.brisbane" required>
+            <div class="form-text">Unique identifier used to match schedule files.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Display Name <span class="text-danger">*</span></label>
+            <input type="text" name="name" class="form-control" placeholder="e.g. ABC Radio Brisbane" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Stream URL <span class="text-danger">*</span></label>
+            <input type="url" name="url" class="form-control" placeholder="http://..." required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Logo URL</label>
+            <input type="url" name="logo" class="form-control" placeholder="https://...">
+          </div>
+          <div class="row g-2">
+            <div class="col">
+              <label class="form-label">Group</label>
+              <input type="text" name="group" class="form-control" placeholder="Radio - ABC">
+            </div>
+            <div class="col">
+              <label class="form-label">Timezone</label>
+              <input type="text" name="timezone" class="form-control" value="UTC">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Channel</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleChannel(tvgId, checkbox) {
+  fetch(`/channels/${encodeURIComponent(tvgId)}/toggle`, {method: 'POST'})
+    .then(r => r.json())
+    .then(d => {
+      checkbox.checked = d.enabled;
+      const row = document.getElementById('row-' + tvgId.replace(/\./g, '_'));
+      row.classList.toggle('text-muted', !d.enabled);
+      showToast(d.enabled ? 'Channel enabled' : 'Channel disabled',
+                d.enabled ? 'success' : 'secondary');
+    });
+}
+</script>
+{% endblock %}

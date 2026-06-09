@@ -1,0 +1,296 @@
+/* ============================================================
+   Radio EPG – App Stylesheet
+   ============================================================ */
+
+:root {
+  --sidebar-width: 240px;
+  --sidebar-bg: #161b2e;
+  --sidebar-text: rgba(255,255,255,.75);
+  --sidebar-active-bg: rgba(79,142,247,.18);
+  --sidebar-active-text: #7fb3ff;
+  --sidebar-hover-bg: rgba(255,255,255,.06);
+  --accent: #4f8ef7;
+  --bg: #f0f3f8;
+  --card-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+
+/* ── Layout ── */
+html, body { height: 100%; }
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: var(--sidebar-width);
+  min-height: 100vh;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  position: fixed;
+  top: 0; left: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 1030;
+  overflow-y: auto;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  padding: 1.1rem 1.25rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  letter-spacing: .01em;
+}
+
+.sidebar .nav-link {
+  color: var(--sidebar-text);
+  padding: .55rem 1.25rem;
+  border-radius: 6px;
+  margin: 1px 8px;
+  font-size: .9rem;
+  transition: background .15s, color .15s;
+}
+.sidebar .nav-link:hover {
+  background: var(--sidebar-hover-bg);
+  color: #fff;
+}
+.sidebar .nav-link.active {
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-active-text);
+}
+.sidebar .nav-link-epg {
+  background: rgba(79,142,247,.12);
+  color: var(--accent);
+  margin-top: 8px;
+}
+.sidebar .nav-link-epg:hover,
+.sidebar .nav-link-epg.active {
+  background: rgba(79,142,247,.28);
+  color: #7fb3ff;
+}
+
+.sidebar-footer {
+  padding: .75rem 1.25rem;
+  font-size: .75rem;
+  color: rgba(255,255,255,.3);
+  border-top: 1px solid rgba(255,255,255,.07);
+  margin-top: auto;
+}
+
+/* ── Main content ── */
+.main-content {
+  margin-left: var(--sidebar-width);
+  flex-grow: 1;
+  background: var(--bg);
+  min-height: 100vh;
+  padding: 1.5rem;
+}
+
+/* ── Page header ── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+.page-header h1 {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* ── Flash messages ── */
+.flash-container {
+  margin-bottom: 1rem;
+}
+
+/* ── Stat cards ── */
+.stat-card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+}
+.stat-icon { font-size: 1.5rem; line-height: 1; }
+.stat-value { font-size: 2rem; font-weight: 700; line-height: 1.1; }
+.stat-label { font-size: .8rem; color: #6b7280; }
+
+/* ── Channel cards ── */
+.channel-card {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+  transition: box-shadow .15s, transform .15s;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.channel-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.12); transform: translateY(-1px); }
+.channel-card--disabled { opacity: .55; }
+
+.channel-logo-wrap {
+  height: 72px;
+  background: #f8f9fb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: .5rem;
+  border-bottom: 1px solid #f0f0f0;
+}
+.channel-logo {
+  max-height: 56px;
+  max-width: 100%;
+  object-fit: contain;
+}
+.channel-logo-placeholder {
+  font-size: 2rem;
+  color: #d1d5db;
+}
+
+.channel-card-body {
+  padding: .65rem .75rem;
+  flex-grow: 1;
+}
+.channel-name {
+  font-size: .85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.channel-id { font-size: .72rem; }
+
+.channel-card-actions {
+  display: flex;
+  gap: 4px;
+  padding: .4rem .6rem;
+  border-top: 1px solid #f3f4f6;
+  background: #fafafa;
+}
+
+/* ── Thumbnails in tables ── */
+.ch-thumb {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  border-radius: 4px;
+  background: #f8f9fb;
+}
+.ch-thumb-placeholder {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #d1d5db;
+  font-size: 1.1rem;
+  background: #f8f9fb;
+  border-radius: 4px;
+}
+
+/* ── Logo placeholder (large, in edit page) ── */
+.logo-placeholder-lg {
+  width: 120px;
+  height: 80px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  color: #d1d5db;
+  margin: 0 auto;
+}
+
+/* ── Image cards ── */
+.image-card {
+  background: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+}
+.image-preview {
+  height: 90px;
+  background: #f8f9fb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.image-preview img {
+  max-height: 90px;
+  max-width: 100%;
+  object-fit: contain;
+}
+.img-broken { color: #d1d5db; font-size: 1.5rem; }
+.image-card-body {
+  padding: .4rem .5rem;
+  flex-grow: 1;
+}
+.image-filename {
+  font-size: .75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.image-card-actions {
+  display: flex;
+  gap: 3px;
+  padding: .3rem .5rem;
+  border-top: 1px solid #f3f4f6;
+  background: #fafafa;
+}
+
+/* ── Schedule table ── */
+.schedule-table td { vertical-align: middle; }
+.schedule-table input { padding: .25rem .4rem; font-size: .82rem; }
+
+/* ── Playlist builder ── */
+.source-list { max-height: 520px; overflow-y: auto; }
+.source-item { font-size: .85rem; }
+
+/* ── Empty state ── */
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  color: #9ca3af;
+}
+.empty-state i { font-size: 3rem; display: block; margin-bottom: .75rem; }
+.empty-state p { margin-bottom: .5rem; }
+
+/* ── Utility: extra-small buttons ── */
+.btn-xs {
+  padding: .2rem .45rem;
+  font-size: .75rem;
+  line-height: 1.4;
+  border-radius: .25rem;
+}
+
+/* ── Cards ── */
+.card { border: none; box-shadow: var(--card-shadow); border-radius: 10px; }
+.card-header {
+  background: #fff;
+  border-bottom: 1px solid #f0f2f5;
+  font-weight: 600;
+  font-size: .9rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .sidebar { width: 100%; min-height: auto; position: static; }
+  .main-content { margin-left: 0; }
+  .app-shell { flex-direction: column; }
+}

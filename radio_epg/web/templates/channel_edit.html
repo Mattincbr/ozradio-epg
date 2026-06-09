@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Edit {{ channel.name }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb mb-0">
+      <li class="breadcrumb-item"><a href="{{ url_for('channels') }}">Channels</a></li>
+      <li class="breadcrumb-item active">{{ channel.name }}</li>
+    </ol>
+  </nav>
+</div>
+
+<div class="row g-4">
+  <!-- Channel metadata -->
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header">Channel Metadata</div>
+      <div class="card-body">
+        <form action="{{ url_for('channel_edit', tvg_id=channel.tvg_id) }}" method="post">
+          <div class="mb-3">
+            <label class="form-label">TVG ID</label>
+            <input type="text" class="form-control" value="{{ channel.tvg_id }}" disabled>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Display Name</label>
+            <input type="text" name="name" class="form-control" value="{{ channel.name }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Stream URL</label>
+            <input type="url" name="url" class="form-control" value="{{ channel.url }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Logo URL</label>
+            <input type="url" name="logo" class="form-control" value="{{ channel.logo or '' }}"
+                   placeholder="https://... (leave blank to keep current)">
+          </div>
+          <div class="row g-2 mb-4">
+            <div class="col">
+              <label class="form-label">Group / Category</label>
+              <input type="text" name="group" class="form-control" value="{{ channel.group or '' }}">
+            </div>
+            <div class="col">
+              <label class="form-label">Timezone</label>
+              <input type="text" name="timezone" class="form-control"
+                     value="{{ channel.timezone or 'UTC' }}" list="tz-list">
+              <datalist id="tz-list">
+                {% for tz in timezones %}<option value="{{ tz }}">{% endfor %}
+              </datalist>
+            </div>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a href="{{ url_for('channels') }}" class="btn btn-secondary">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Logo + quick links -->
+  <div class="col-lg-5">
+    <div class="card mb-3">
+      <div class="card-header">Station Logo</div>
+      <div class="card-body text-center">
+        {% set logo = channel_logo_url(channel) %}
+        {% if logo %}
+          <img src="{{ logo }}" alt="{{ channel.name }}" class="img-fluid mb-3"
+               style="max-height:120px;max-width:200px;object-fit:contain">
+        {% else %}
+          <div class="logo-placeholder-lg mb-3">
+            <i class="bi bi-broadcast-pin"></i>
+          </div>
+        {% endif %}
+        <form action="{{ url_for('channel_upload_logo', tvg_id=channel.tvg_id) }}"
+              method="post" enctype="multipart/form-data">
+          <div class="input-group input-group-sm">
+            <input type="file" name="logo" class="form-control" accept="image/*" required>
+            <button type="submit" class="btn btn-outline-primary">Upload</button>
+          </div>
+          <div class="form-text">PNG, JPG, SVG, WebP — replaces URL logo</div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">Quick Links</div>
+      <div class="list-group list-group-flush">
+        <a href="{{ url_for('schedule_edit', tvg_id=channel.tvg_id) }}"
+           class="list-group-item list-group-item-action d-flex align-items-center gap-2">
+          <i class="bi bi-calendar-week text-primary"></i>
+          {% if has_schedule(channel.tvg_id) %}Edit Schedule{% else %}Create Schedule{% endif %}
+        </a>
+        <a href="{{ url_for('overrides') }}?channel={{ channel.tvg_id }}"
+           class="list-group-item list-group-item-action d-flex align-items-center gap-2">
+          <i class="bi bi-calendar-event text-warning"></i>Manage Overrides
+        </a>
+        <a href="{{ url_for('images') }}"
+           class="list-group-item list-group-item-action d-flex align-items-center gap-2">
+          <i class="bi bi-images text-info"></i>Image Library
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const timezones = {{ timezones | tojson }};
+</script>
+{% endblock %}

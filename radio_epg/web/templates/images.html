@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}Image Library{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1><i class="bi bi-images me-2"></i>Image Library</h1>
+  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+    <i class="bi bi-upload me-1"></i>Upload Image
+  </button>
+</div>
+
+<!-- Filter -->
+<ul class="nav nav-pills mb-3" id="imgFilter">
+  <li class="nav-item">
+    <button class="nav-link active" onclick="filterImages('all', this)">All</button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link" onclick="filterImages('logo', this)">Station Logos</button>
+  </li>
+  <li class="nav-item">
+    <button class="nav-link" onclick="filterImages('programme', this)">Programme Images</button>
+  </li>
+</ul>
+
+{% if images %}
+<div class="row g-3" id="image-grid">
+  {% for img in images %}
+  <div class="col-6 col-sm-4 col-md-3 col-lg-2 img-item" data-type="{{ img.type }}">
+    <div class="image-card">
+      <div class="image-preview">
+        <img src="{{ url_for('uploaded_file', path=img.path) }}" alt="{{ img.filename }}"
+             onerror="this.parentElement.innerHTML='<div class=\'img-broken\'><i class=\'bi bi-image\' /></div>'">
+      </div>
+      <div class="image-card-body">
+        <div class="image-filename" title="{{ img.filename }}">{{ img.filename }}</div>
+        <div class="d-flex align-items-center gap-1 mt-1">
+          {% if img.type == 'logo' %}
+            <span class="badge bg-primary-subtle text-primary-emphasis">Logo</span>
+          {% else %}
+            <span class="badge bg-secondary-subtle text-secondary-emphasis">Programme</span>
+          {% endif %}
+          {% if img.channel_id %}
+            <span class="badge bg-light text-dark border" title="{{ img.channel_id }}">
+              {{ ch_map.get(img.channel_id, img.channel_id)|truncate(12, True, '…') }}
+            </span>
+          {% endif %}
+        </div>
+        {% if img.programme_title %}
+          <div class="text-muted small mt-1" title="{{ img.programme_title }}">
+            {{ img.programme_title|truncate(20) }}
+          </div>
+        {% endif %}
+      </div>
+      <div class="image-card-actions">
+        <a href="{{ url_for('uploaded_file', path=img.path) }}" target="_blank"
+           class="btn btn-xs btn-outline-secondary" title="View">
+          <i class="bi bi-eye"></i>
+        </a>
+        <form action="{{ url_for('image_delete', image_id=img.id) }}" method="post"
+              class="d-inline" onsubmit="return confirm('Delete this image?')">
+          <button type="submit" class="btn btn-xs btn-outline-danger" title="Delete">
+            <i class="bi bi-trash"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+  <i class="bi bi-images"></i>
+  <p>No images uploaded yet.</p>
+  <p class="text-muted small">Upload station logos and programme images here.<br>
+    Logos can also be uploaded from the channel edit page.</p>
+  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+    Upload First Image
+  </button>
+</div>
+{% endif %}
+
+<!-- Upload Modal -->
+<div class="modal fade" id="uploadModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form action="{{ url_for('image_upload') }}" method="post" enctype="multipart/form-data">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Upload Image</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Image File <span class="text-danger">*</span></label>
+            <input type="file" name="file" class="form-control" accept="image/*" required
+                   onchange="previewUpload(this)">
+            <div class="form-text">PNG, JPG, SVG, WebP, GIF — max 16 MB</div>
+          </div>
+          <div id="upload-preview" class="mb-3 text-center" style="display:none">
+            <img id="upload-preview-img" src="" alt="" style="max-height:100px;max-width:100%;border-radius:4px">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Image Type</label>
+            <select name="img_type" class="form-select" id="imgTypeSelect"
+                    onchange="toggleProgrammeFields(this.value)">
+              <option value="logo">Station Logo</option>
+              <option value="programme">Programme Image</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Channel</label>
+            <select name="channel_id" class="form-select">
+              <option value="">Not assigned</option>
+              {% for id, name in ch_map.items() %}
+                <option value="{{ id }}">{{ name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div id="programmeFields" style="display:none">
+            <div class="mb-3">
+              <label class="form-label">Programme Title</label>
+              <input type="text" name="programme_title" class="form-control"
+                     placeholder="e.g. Drive with Terri Begley">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Upload</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterImages(type, btn) {
+  document.querySelectorAll('#imgFilter .nav-link').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.img-item').forEach(el => {
+    el.style.display = (type === 'all' || el.dataset.type === type) ? '' : 'none';
+  });
+}
+
+function previewUpload(input) {
+  const preview = document.getElementById('upload-preview');
+  const img = document.getElementById('upload-preview-img');
+  if (input.files?.[0]) {
+    img.src = URL.createObjectURL(input.files[0]);
+    preview.style.display = '';
+  }
+}
+
+function toggleProgrammeFields(type) {
+  document.getElementById('programmeFields').style.display =
+    type === 'programme' ? '' : 'none';
+}
+</script>
+{% endblock %}

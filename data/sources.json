@@ -1,0 +1,22 @@
+{
+  "sources": [
+    {
+      "id": "abc_australia_aac",
+      "name": "ABC Australia (AAC)",
+      "url": "https://raw.githubusercontent.com/fhdm-dev/radio/master/pl/ABC-Radio-(Australia)-AAC.m3u",
+      "description": "Australian Broadcasting Corporation radio stations (AAC streams)"
+    },
+    {
+      "id": "mjh_australia",
+      "name": "Matt Huisman – Australian Radio",
+      "url": "https://i.mjh.nz/au/all/kodi-radio.m3u8",
+      "description": "Comprehensive Australian radio playlist by Matt Huisman"
+    },
+    {
+      "id": "bbc_nonuk",
+      "name": "BBC (Non-UK)",
+      "url": "https://raw.githubusercontent.com/fhdm-dev/radio/master/pl/BBC%20(Non-UK).m3u",
+      "description": "BBC radio stations accessible outside the UK"
+    }
+  ]
+}

@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+{% block title %}Programme Overrides{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1><i class="bi bi-calendar-event me-2"></i>Programme Overrides</h1>
+  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOverrideModal">
+    <i class="bi bi-plus-lg me-1"></i>Add Override
+  </button>
+</div>
+
+<!-- Filter bar -->
+<div class="card mb-3">
+  <div class="card-body py-2">
+    <form class="row g-2 align-items-end" method="get">
+      <div class="col-sm-4">
+        <label class="form-label mb-1 small">Filter by Channel</label>
+        <select name="channel" class="form-select form-select-sm">
+          <option value="">All channels</option>
+          {% for ch in channels %}
+            <option value="{{ ch.tvg_id }}" {% if ch.tvg_id == channel_filter %}selected{% endif %}>
+              {{ ch.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-sm-3">
+        <label class="form-label mb-1 small">Filter by Date</label>
+        <input type="date" name="date" class="form-control form-control-sm"
+               value="{{ date_filter }}">
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-sm btn-outline-secondary">Filter</button>
+        <a href="{{ url_for('overrides') }}" class="btn btn-sm btn-link">Clear</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% if overrides %}
+<div class="table-responsive">
+  <table class="table table-hover align-middle">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Channel</th>
+        <th>Time</th>
+        <th>Title</th>
+        <th>Type</th>
+        <th>Image</th>
+        <th width="100">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for ov in overrides %}
+      <tr>
+        <td>{{ ov.date }}</td>
+        <td>
+          <small class="text-muted">{{ ov.channel_id }}</small>
+        </td>
+        <td class="text-nowrap">{{ ov.start }} – {{ ov.end }}</td>
+        <td>
+          <strong>{{ ov.title }}</strong>
+          {% if ov.description %}
+            <br><small class="text-muted">{{ ov.description[:80] }}{% if ov.description|length > 80 %}…{% endif %}</small>
+          {% endif %}
+        </td>
+        <td>
+          {% if ov.override_type == 'sports' %}
+            <span class="badge bg-success"><i class="bi bi-trophy me-1"></i>Sports</span>
+          {% elif ov.override_type == 'cancellation' %}
+            <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Cancelled</span>
+          {% else %}
+            <span class="badge bg-primary"><i class="bi bi-calendar-event me-1"></i>Event</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if ov.image %}
+            <img src="{{ url_for('uploaded_file', path='images/' + ov.image) }}"
+                 alt="" style="height:32px;border-radius:4px;">
+          {% else %}
+            <span class="text-muted small">—</span>
+          {% endif %}
+        </td>
+        <td>
+          <a href="{{ url_for('override_edit', override_id=ov.id) }}"
+             class="btn btn-xs btn-outline-secondary" title="Edit">
+            <i class="bi bi-pencil"></i>
+          </a>
+          <form action="{{ url_for('override_delete', override_id=ov.id) }}"
+                method="post" class="d-inline"
+                onsubmit="return confirm('Delete this override?')">
+            <button type="submit" class="btn btn-xs btn-outline-danger" title="Delete">
+              <i class="bi bi-trash"></i>
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty-state">
+  <i class="bi bi-calendar-event"></i>
+  <p>No overrides yet.</p>
+  <p class="text-muted small">Add overrides for one-off events, sports, or cancellations.<br>
+    They'll be applied when you generate the EPG.</p>
+  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addOverrideModal">
+    Add First Override
+  </button>
+</div>
+{% endif %}
+
+<!-- Add Override Modal -->
+<div class="modal fade" id="addOverrideModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <form action="{{ url_for('override_add') }}" method="post" enctype="multipart/form-data">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Add Programme Override</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Channel <span class="text-danger">*</span></label>
+              <select name="channel_id" class="form-select" required
+                      onchange="loadDayProgrammes(this.value)">
+                <option value="">Select channel…</option>
+                {% for ch in channels %}
+                  <option value="{{ ch.tvg_id }}">{{ ch.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Date <span class="text-danger">*</span></label>
+              <input type="date" name="date" class="form-control" required
+                     id="override-date" onchange="loadDayProgrammes()">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Start Time <span class="text-danger">*</span></label>
+              <input type="time" name="start" class="form-control" required>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">End Time <span class="text-danger">*</span></label>
+              <input type="time" name="end" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Type</label>
+              <select name="override_type" class="form-select">
+                <option value="event">🗓️ Special Event</option>
+                <option value="sports">🏆 Sports Coverage</option>
+                <option value="cancellation">❌ Cancellation</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Title <span class="text-danger">*</span></label>
+              <input type="text" name="title" class="form-control" required
+                     placeholder="e.g. State of Origin Game 1">
+            </div>
+            <div class="col-12">
+              <label class="form-label">Description</label>
+              <textarea name="description" class="form-control" rows="2"
+                        placeholder="Optional description or notes…"></textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Programme Image (optional)</label>
+              <input type="file" name="image" class="form-control" accept="image/*">
+            </div>
+          </div>
+
+          <!-- Schedule preview -->
+          <div id="day-preview" class="mt-3" style="display:none">
+            <label class="form-label text-muted small">Regular programmes on that day:</label>
+            <div id="day-preview-list" class="d-flex flex-wrap gap-1"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Override</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let previewChannelId = '';
+let previewDate = '';
+
+function loadDayProgrammes(newChannelId) {
+  const sel = document.querySelector('[name="channel_id"]');
+  const dateFld = document.getElementById('override-date');
+  previewChannelId = newChannelId || sel?.value || previewChannelId;
+  previewDate = dateFld?.value || previewDate;
+
+  if (!previewChannelId || !previewDate) return;
+
+  fetch(`/api/programmes/${encodeURIComponent(previewChannelId)}/${previewDate}`)
+    .then(r => r.json())
+    .then(progs => {
+      const preview = document.getElementById('day-preview');
+      const list = document.getElementById('day-preview-list');
+      if (!progs.length) { preview.style.display = 'none'; return; }
+      list.innerHTML = progs.map(p =>
+        `<span class="badge bg-light text-dark border">${p.start} ${p.title}</span>`
+      ).join('');
+      preview.style.display = '';
+    });
+}
+</script>
+{% endblock %}

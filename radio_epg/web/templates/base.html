@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en" data-bs-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Radio EPG{% endblock %} — Radio EPG Manager</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+
+<div class="app-shell">
+  <!-- Sidebar -->
+  <nav class="sidebar d-flex flex-column">
+    <a class="sidebar-brand" href="{{ url_for('dashboard') }}">
+      <i class="bi bi-broadcast-pin me-2"></i>Radio EPG
+    </a>
+    <ul class="nav flex-column flex-grow-1 mt-2">
+      <li class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}"
+           href="{{ url_for('dashboard') }}">
+          <i class="bi bi-grid me-2"></i>Dashboard
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if request.endpoint in ('channels','channel_edit') %}active{% endif %}"
+           href="{{ url_for('channels') }}">
+          <i class="bi bi-broadcast me-2"></i>Channels
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'playlist' %}active{% endif %}"
+           href="{{ url_for('playlist') }}">
+          <i class="bi bi-collection-play me-2"></i>Playlist Builder
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'schedule_edit' %}active{% endif %}"
+           href="{{ url_for('channels') }}#schedules">
+          <i class="bi bi-calendar-week me-2"></i>Schedules
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if request.endpoint in ('overrides','override_edit') %}active{% endif %}"
+           href="{{ url_for('overrides') }}">
+          <i class="bi bi-calendar-event me-2"></i>Overrides
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'images' %}active{% endif %}"
+           href="{{ url_for('images') }}">
+          <i class="bi bi-images me-2"></i>Images
+        </a>
+      </li>
+      <li class="nav-item mt-auto">
+        <a class="nav-link nav-link-epg {% if request.endpoint == 'epg' %}active{% endif %}"
+           href="{{ url_for('epg') }}">
+          <i class="bi bi-file-earmark-code me-2"></i>Generate EPG
+        </a>
+      </li>
+    </ul>
+    <div class="sidebar-footer">Radio EPG v0.1</div>
+  </nav>
+
+  <!-- Main content -->
+  <main class="main-content">
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-container">
+          {% for cat, msg in messages %}
+            <div class="alert alert-{{ cat }} alert-dismissible fade show mb-2" role="alert">
+              {{ msg }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
