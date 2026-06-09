@@ -588,6 +588,86 @@ def register_routes(app: Flask) -> None:
         return send_file(buf, as_attachment=True, download_name="epg.xml",
                          mimetype="application/xml")
 
+    # ------------------------------------------------------------------ Radio Browser
+
+    _RB_BASE = "https://de1.api.radio-browser.info/json"
+    _RB_HEADERS = {
+        "User-Agent": "radio-epg/0.1 (https://github.com/Mattincbr/reimagined-octo-disco)"
+    }
+
+    @app.route("/api/radiobrowser/countries")
+    def rb_countries():
+        try:
+            r = requests.get(f"{_RB_BASE}/countries",
+                             headers=_RB_HEADERS, timeout=15,
+                             params={"order": "name", "hidebroken": "true"})
+            r.raise_for_status()
+            return jsonify(r.json())
+        except Exception as exc:
+            return jsonify({"error": str(exc)}), 500
+
+    @app.route("/api/radiobrowser/tags")
+    def rb_tags():
+        try:
+            r = requests.get(f"{_RB_BASE}/tags",
+                             headers=_RB_HEADERS, timeout=15,
+                             params={"order": "stationcount", "reverse": "true",
+                                     "limit": 300, "hidebroken": "true"})
+            r.raise_for_status()
+            return jsonify(r.json())
+        except Exception as exc:
+            return jsonify({"error": str(exc)}), 500
+
+    @app.route("/api/radiobrowser/search")
+    def rb_search():
+        params: dict = {
+            "order":       request.args.get("order", "votes"),
+            "reverse":     "true",
+            "hidebroken":  "true",
+            "limit":       request.args.get("limit", "100"),
+        }
+        if request.args.get("countrycode"):
+            params["countrycode"] = request.args["countrycode"].upper()
+        if request.args.get("tag"):
+            params["tag"] = request.args["tag"]
+        if request.args.get("name"):
+            params["name"] = request.args["name"]
+
+        try:
+            r = requests.get(f"{_RB_BASE}/stations/search",
+                             headers=_RB_HEADERS, timeout=20, params=params)
+            r.raise_for_status()
+            stations = r.json()
+
+            channels = []
+            for s in stations:
+                name = (s.get("name") or "").strip()
+                url  = s.get("url_resolved") or s.get("url", "")
+                if not name or not url:
+                    continue
+                tags_str  = (s.get("tags") or "").strip(", ")
+                codec     = s.get("codec", "")
+                bitrate   = s.get("bitrate", 0)
+                country   = s.get("country", "")
+                cc        = s.get("countrycode", "")
+                channels.append({
+                    "tvg_id": f"rb-{s['stationuuid']}",
+                    "name":   name,
+                    "url":    url,
+                    "logo":   s.get("favicon") or "",
+                    "group":  f"{cc} — {tags_str[:40]}" if tags_str else cc,
+                    "_rb": {
+                        "country": country,
+                        "codec":   codec,
+                        "bitrate": bitrate,
+                        "tags":    tags_str,
+                        "votes":   s.get("votes", 0),
+                    },
+                })
+            return jsonify({"channels": channels, "total": len(channels)})
+        except Exception as exc:
+            return jsonify({"error": str(exc)}), 500
+
     # ------------------------------------------------------------------ API helpers
 
     @app.route("/api/schedule/<tvg_id>")

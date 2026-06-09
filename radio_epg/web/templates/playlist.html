@@ -7,50 +7,127 @@
 
 <div class="row g-3 playlist-builder">
 
-  <!-- Left: Sources -->
+  <!-- ── Left: Sources / Radio Browser ── -->
   <div class="col-lg-3">
     <div class="card h-100">
-      <div class="card-header d-flex align-items-center justify-content-between">
-        <span><i class="bi bi-link-45deg me-1"></i>Sources</span>
-        <button class="btn btn-xs btn-outline-primary" data-bs-toggle="modal"
-                data-bs-target="#addSourceModal">
-          <i class="bi bi-plus-lg"></i>
-        </button>
+      <div class="card-header p-0">
+        <ul class="nav nav-tabs border-0 px-2 pt-2" id="leftTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tab-sources" data-bs-toggle="tab"
+                    data-bs-target="#pane-sources" type="button">
+              <i class="bi bi-link-45deg me-1"></i>Sources
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-rb" data-bs-toggle="tab"
+                    data-bs-target="#pane-rb" type="button"
+                    onclick="initRbPanel()">
+              <i class="bi bi-globe me-1"></i>Radio Browser
+            </button>
+          </li>
+        </ul>
       </div>
-      <div class="list-group list-group-flush source-list" id="source-list">
-        {% for src in sources %}
-        <div class="list-group-item source-item" id="src-{{ src.id }}">
-          <div class="d-flex align-items-start justify-content-between gap-1">
-            <div class="flex-grow-1 min-w-0">
-              <div class="fw-medium text-truncate">{{ src.name }}</div>
-              {% if src.description %}
-                <small class="text-muted d-block text-truncate">{{ src.description }}</small>
-              {% endif %}
-              {% if src.cached_count is not none %}
-                <small class="text-success"><i class="bi bi-check-circle me-1"></i>{{ src.cached_count }} channels</small>
-              {% endif %}
+
+      <div class="tab-content flex-grow-1">
+
+        <!-- M3U8 Sources -->
+        <div class="tab-pane fade show active" id="pane-sources">
+          <div class="d-flex align-items-center justify-content-between px-3 py-2 border-bottom">
+            <small class="text-muted">M3U8 playlists</small>
+            <button class="btn btn-xs btn-outline-primary" data-bs-toggle="modal"
+                    data-bs-target="#addSourceModal">
+              <i class="bi bi-plus-lg me-1"></i>Add
+            </button>
+          </div>
+          <div class="list-group list-group-flush source-list" id="source-list">
+            {% for src in sources %}
+            <div class="list-group-item source-item" id="src-{{ src.id }}">
+              <div class="d-flex align-items-start justify-content-between gap-1">
+                <div class="flex-grow-1 min-w-0">
+                  <div class="fw-medium text-truncate small">{{ src.name }}</div>
+                  {% if src.description %}
+                    <small class="text-muted d-block" style="font-size:.72rem">{{ src.description }}</small>
+                  {% endif %}
+                  {% if src.cached_count is not none %}
+                    <small class="text-success" style="font-size:.72rem">
+                      <i class="bi bi-check-circle me-1"></i>{{ src.cached_count }} channels
+                    </small>
+                  {% endif %}
+                </div>
+                <div class="d-flex flex-column gap-1">
+                  <button class="btn btn-xs btn-outline-primary"
+                          onclick="loadSource('{{ src.id }}')"
+                          id="fetch-btn-{{ src.id }}" title="Load channels">
+                    <i class="bi bi-arrow-clockwise"></i>
+                  </button>
+                  <form action="{{ url_for('source_delete', source_id=src.id) }}"
+                        method="post" onsubmit="return confirm('Remove this source?')">
+                    <button type="submit" class="btn btn-xs btn-outline-danger"><i class="bi bi-trash"></i></button>
+                  </form>
+                </div>
+              </div>
             </div>
-            <div class="d-flex flex-column gap-1">
-              <button class="btn btn-xs btn-outline-primary"
-                      onclick="loadSource('{{ src.id }}')"
-                      id="fetch-btn-{{ src.id }}" title="Load channels">
-                <i class="bi bi-arrow-clockwise"></i>
-              </button>
-              <form action="{{ url_for('source_delete', source_id=src.id) }}"
-                    method="post" onsubmit="return confirm('Remove this source?')">
-                <button type="submit" class="btn btn-xs btn-outline-danger" title="Remove">
-                  <i class="bi bi-trash"></i>
-                </button>
-              </form>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Radio Browser search -->
+        <div class="tab-pane fade" id="pane-rb">
+          <div class="p-2">
+            <div class="mb-2">
+              <label class="form-label mb-1" style="font-size:.8rem">Country</label>
+              <select id="rb-country" class="form-select form-select-sm">
+                <option value="">Any country</option>
+              </select>
+            </div>
+            <div class="mb-2">
+              <label class="form-label mb-1" style="font-size:.8rem">Genre / Tag</label>
+              <select id="rb-tag" class="form-select form-select-sm">
+                <option value="">Any genre</option>
+              </select>
+            </div>
+            <div class="mb-2">
+              <label class="form-label mb-1" style="font-size:.8rem">Station name</label>
+              <input type="text" id="rb-name" class="form-control form-control-sm"
+                     placeholder="Search by name…"
+                     onkeydown="if(event.key==='Enter') rbSearch()">
+            </div>
+            <div class="row g-1 mb-2">
+              <div class="col">
+                <select id="rb-limit" class="form-select form-select-sm">
+                  <option value="50">50 results</option>
+                  <option value="100" selected>100 results</option>
+                  <option value="200">200 results</option>
+                  <option value="500">500 results</option>
+                </select>
+              </div>
+              <div class="col-auto">
+                <select id="rb-order" class="form-select form-select-sm">
+                  <option value="votes">By votes</option>
+                  <option value="clickcount">By popularity</option>
+                  <option value="bitrate">By bitrate</option>
+                  <option value="name">By name</option>
+                </select>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-sm w-100" id="rb-search-btn" onclick="rbSearch()">
+              <i class="bi bi-search me-1"></i>Search Radio Browser
+            </button>
+            <div class="mt-2 text-center" id="rb-status" style="font-size:.75rem;color:#6b7280"></div>
+          </div>
+          <div class="px-2 pb-2">
+            <div class="border-top pt-2 text-muted" style="font-size:.7rem">
+              Data from <a href="https://www.radio-browser.info" target="_blank"
+                class="text-muted">Radio Browser</a> — crowdsourced, 40k+ stations worldwide.
             </div>
           </div>
         </div>
-        {% endfor %}
-      </div>
+
+      </div><!-- /tab-content -->
     </div>
   </div>
 
-  <!-- Centre: Channel Browser -->
+  <!-- ── Centre: Channel Browser ── -->
   <div class="col-lg-5">
     <div class="card h-100">
       <div class="card-header">
@@ -59,9 +136,9 @@
           <span id="browser-title">Channel Browser</span>
           <div class="ms-auto d-flex gap-1 align-items-center">
             <input type="text" class="form-control form-control-sm"
-                   placeholder="Search…" style="width:140px"
-                   oninput="filterBrowser(this.value)">
-            <select class="form-select form-select-sm" style="width:130px"
+                   placeholder="Search…" style="width:130px"
+                   oninput="filterBrowser(this.value)" id="browser-search">
+            <select class="form-select form-select-sm" style="width:120px"
                     onchange="filterGroup(this.value)" id="group-filter">
               <option value="">All groups</option>
             </select>
@@ -71,12 +148,13 @@
       <div class="card-body p-0 overflow-auto" style="max-height:520px">
         <div id="browser-empty" class="empty-state p-4">
           <i class="bi bi-arrow-left-circle"></i>
-          <p>Click the <i class="bi bi-arrow-clockwise"></i> button next to a source to load its channels.</p>
+          <p class="small">Click <i class="bi bi-arrow-clockwise"></i> next to an M3U8 source,
+             or use the <strong>Radio Browser</strong> tab to search 40,000+ global stations.</p>
         </div>
         <div id="channel-browser" style="display:none">
           <div class="px-2 py-1 border-bottom d-flex gap-2 bg-light">
             <button class="btn btn-xs btn-outline-secondary" onclick="selectAll(true)">Select all</button>
-            <button class="btn btn-xs btn-outline-secondary" onclick="selectAll(false)">Deselect all</button>
+            <button class="btn btn-xs btn-outline-secondary" onclick="selectAll(false)">None</button>
           </div>
           <div id="channel-list" class="p-2"></div>
         </div>
@@ -84,16 +162,16 @@
     </div>
   </div>
 
-  <!-- Right: Selected + actions -->
+  <!-- ── Right: Selected + actions ── -->
   <div class="col-lg-4">
     <div class="card">
       <div class="card-header d-flex align-items-center justify-content-between">
-        <span><i class="bi bi-check2-square me-1"></i>Selected Channels
+        <span><i class="bi bi-check2-square me-1"></i>Selected
           <span class="badge bg-primary ms-1" id="sel-count">0</span>
         </span>
         <button class="btn btn-xs btn-outline-danger" onclick="clearSelection()">Clear</button>
       </div>
-      <div class="card-body p-0 overflow-auto" style="max-height:340px">
+      <div class="card-body p-0 overflow-auto" style="max-height:300px">
         <div id="selected-list" class="list-group list-group-flush"></div>
         <div id="selected-empty" class="p-3 text-center text-muted small">
           No channels selected yet.
@@ -111,11 +189,10 @@
       </div>
     </div>
 
-    <!-- Also generate from existing configured channels -->
     <div class="card mt-3">
       <div class="card-header"><i class="bi bi-file-earmark-text me-1"></i>Export Configured Channels</div>
       <div class="card-body">
-        <p class="text-muted small mb-2">Download an M3U8 of your currently enabled channels.</p>
+        <p class="text-muted small mb-2">Download an M3U8 of all your enabled channels.</p>
         <button class="btn btn-sm btn-outline-primary w-100" onclick="exportEnabled()">
           <i class="bi bi-download me-1"></i>Download Current M3U8
         </button>
@@ -136,13 +213,11 @@
         <div class="modal-body">
           <div class="mb-3">
             <label class="form-label">Name <span class="text-danger">*</span></label>
-            <input type="text" name="name" class="form-control"
-                   placeholder="e.g. My Station List" required>
+            <input type="text" name="name" class="form-control" required>
           </div>
           <div class="mb-3">
             <label class="form-label">M3U8 URL <span class="text-danger">*</span></label>
-            <input type="url" name="url" class="form-control"
-                   placeholder="https://…" required>
+            <input type="url" name="url" class="form-control" placeholder="https://…" required>
           </div>
           <div class="mb-3">
             <label class="form-label">Description</label>
@@ -166,74 +241,171 @@ let currentSourceId = null;
 let allBrowserChannels = [];
 const selected = new Map();  // tvg_id -> channel dict
 
+// ── M3U8 source loading ──────────────────────────────────────────────────
+
 async function loadSource(sourceId) {
   const btn = document.getElementById(`fetch-btn-${sourceId}`);
   const oldHtml = btn.innerHTML;
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-
   try {
     const r = await fetch(`/api/sources/${sourceId}/channels?refresh=1`);
     const data = await r.json();
     if (data.error) { showToast(data.error, 'danger'); return; }
-
     currentSourceId = sourceId;
     allBrowserChannels = data.channels;
     renderBrowser(data.channels);
-
-    // Update source card count
     const card = document.getElementById(`src-${sourceId}`);
     let countEl = card.querySelector('.text-success');
     if (!countEl) {
       countEl = document.createElement('small');
       countEl.className = 'text-success';
+      countEl.style.fontSize = '.72rem';
       card.querySelector('.flex-grow-1').appendChild(countEl);
     }
     countEl.innerHTML = `<i class="bi bi-check-circle me-1"></i>${data.channels.length} channels`;
-
     showToast(`Loaded ${data.channels.length} channels`, 'success');
+  } catch(e) { showToast('Failed: ' + e.message, 'danger'); }
+  finally { btn.disabled = false; btn.innerHTML = oldHtml; }
+}
+
+// ── Radio Browser ────────────────────────────────────────────────────────
+
+let rbInitialised = false;
+
+async function initRbPanel() {
+  if (rbInitialised) return;
+  rbInitialised = true;
+  const status = document.getElementById('rb-status');
+  status.textContent = 'Loading countries and genres…';
+  try {
+    const [cRes, tRes] = await Promise.all([
+      fetch('/api/radiobrowser/countries'),
+      fetch('/api/radiobrowser/tags'),
+    ]);
+    const countries = await cRes.json();
+    const tags = await tRes.json();
+
+    if (!countries.error) {
+      const sel = document.getElementById('rb-country');
+      countries.forEach(c => {
+        if (!c.name || !c.stationcount) return;
+        const o = document.createElement('option');
+        o.value = c.iso_3166_1 || c.name;
+        o.textContent = `${c.name} (${c.stationcount.toLocaleString()})`;
+        sel.appendChild(o);
+      });
+    }
+
+    if (!tags.error) {
+      const sel = document.getElementById('rb-tag');
+      tags.slice(0, 200).forEach(t => {
+        if (!t.name || t.stationcount < 5) return;
+        const o = document.createElement('option');
+        o.value = t.name;
+        o.textContent = `${t.name} (${t.stationcount.toLocaleString()})`;
+        sel.appendChild(o);
+      });
+    }
+    status.textContent = '';
   } catch(e) {
-    showToast('Failed: ' + e.message, 'danger');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = oldHtml;
+    status.textContent = 'Could not load filter options.';
   }
 }
 
-function renderBrowser(channels) {
-  const browser = document.getElementById('channel-browser');
-  const empty = document.getElementById('browser-empty');
-  const list = document.getElementById('channel-list');
-  const groupSel = document.getElementById('group-filter');
+async function rbSearch() {
+  const params = new URLSearchParams();
+  const country = document.getElementById('rb-country').value;
+  const tag     = document.getElementById('rb-tag').value;
+  const name    = document.getElementById('rb-name').value.trim();
+  const limit   = document.getElementById('rb-limit').value;
+  const order   = document.getElementById('rb-order').value;
 
-  // Collect unique groups
+  if (!country && !tag && !name) {
+    showToast('Enter a country, genre, or station name to search.', 'warning');
+    return;
+  }
+
+  if (country) params.set('countrycode', country);
+  if (tag)     params.set('tag', tag);
+  if (name)    params.set('name', name);
+  params.set('limit', limit);
+  params.set('order', order);
+
+  const btn = document.getElementById('rb-search-btn');
+  const status = document.getElementById('rb-status');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Searching…';
+  status.textContent = '';
+
+  try {
+    const r = await fetch('/api/radiobrowser/search?' + params);
+    const data = await r.json();
+    if (data.error) { showToast(data.error, 'danger'); return; }
+    currentSourceId = 'radiobrowser';
+    allBrowserChannels = data.channels;
+    renderBrowser(data.channels, true);
+    status.textContent = `${data.total} station${data.total !== 1 ? 's' : ''} found`;
+    showToast(`Found ${data.total} stations`, 'success');
+  } catch(e) { showToast('Search failed: ' + e.message, 'danger'); }
+  finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-search me-1"></i>Search Radio Browser';
+  }
+}
+
+// ── Channel browser rendering ────────────────────────────────────────────
+
+function renderBrowser(channels, isRb = false) {
+  const browser   = document.getElementById('channel-browser');
+  const empty     = document.getElementById('browser-empty');
+  const list      = document.getElementById('channel-list');
+  const groupSel  = document.getElementById('group-filter');
+  const searchBox = document.getElementById('browser-search');
+
+  searchBox.value = '';
+
   const groups = [...new Set(channels.map(c => c.group).filter(Boolean))].sort();
   groupSel.innerHTML = '<option value="">All groups</option>' +
-    groups.map(g => `<option value="${g}">${g}</option>`).join('');
+    groups.map(g => `<option value="${escHtml(g)}">${escHtml(g)}</option>`).join('');
 
   list.innerHTML = channels.map(ch => {
-    const already = configuredIds.has(ch.tvg_id);
+    const already  = configuredIds.has(ch.tvg_id);
     const isSelected = selected.has(ch.tvg_id);
+    const rb       = ch._rb;
+    const meta     = rb
+      ? `<small class="text-muted d-block" style="font-size:.7rem">
+           ${rb.codec ? rb.codec + ' ' : ''}${rb.bitrate ? rb.bitrate + 'kbps' : ''}
+           ${rb.country ? ' · ' + rb.country : ''}
+         </small>`
+      : '';
     return `
       <div class="browser-item d-flex align-items-center gap-2 py-1 px-1 border-bottom"
-           data-group="${ch.group||''}" data-name="${ch.name.toLowerCase()}" data-id="${ch.tvg_id}">
+           data-group="${escHtml(ch.group||'')}"
+           data-name="${escHtml(ch.name.toLowerCase())}">
         <input type="checkbox" class="form-check-input mt-0 flex-shrink-0"
-               id="bch-${ch.tvg_id}" ${isSelected ? 'checked' : ''}
+               id="bch-${ch.tvg_id.replace(/[^a-z0-9]/gi,'_')}"
+               ${isSelected ? 'checked' : ''}
                onchange="toggleSelected('${ch.tvg_id}', this.checked)">
-        ${ch.logo ? `<img src="${ch.logo}" alt="" style="width:24px;height:24px;object-fit:contain;flex-shrink:0"
-                         onerror="this.style.display='none'">` : '<span style="width:24px"></span>'}
-        <label for="bch-${ch.tvg_id}" class="flex-grow-1 mb-0 cursor-pointer" style="cursor:pointer">
-          <span class="fw-medium">${ch.name}</span>
-          ${ch.group ? `<small class="text-muted ms-1">${ch.group}</small>` : ''}
+        ${ch.logo
+          ? `<img src="${escHtml(ch.logo)}" alt="" loading="lazy"
+                  style="width:24px;height:24px;object-fit:contain;flex-shrink:0"
+                  onerror="this.style.display='none'">`
+          : '<span style="width:24px;flex-shrink:0"></span>'}
+        <label for="bch-${ch.tvg_id.replace(/[^a-z0-9]/gi,'_')}"
+               class="flex-grow-1 mb-0 min-w-0" style="cursor:pointer">
+          <span class="fw-medium d-block text-truncate" style="font-size:.85rem">${escHtml(ch.name)}</span>
+          ${ch.group ? `<small class="text-muted" style="font-size:.72rem">${escHtml(ch.group)}</small>` : ''}
+          ${meta}
         </label>
-        ${already ? '<span class="badge bg-success-subtle text-success-emphasis ms-auto">Added</span>' : ''}
+        ${already ? '<span class="badge bg-success-subtle text-success-emphasis ms-auto flex-shrink-0" style="font-size:.65rem">Added</span>' : ''}
       </div>`;
   }).join('');
 
   browser.style.display = '';
-  empty.style.display = 'none';
+  empty.style.display   = 'none';
   document.getElementById('browser-title').textContent =
-    `${channels.length} channels`;
+    `${channels.length.toLocaleString()} channel${channels.length !== 1 ? 's' : ''}`;
 }
 
 function filterBrowser(query) {
@@ -253,13 +425,15 @@ function selectAll(checked) {
   document.querySelectorAll('.browser-item').forEach(el => {
     if (el.style.display === 'none') return;
     const cb = el.querySelector('input[type="checkbox"]');
-    if (cb) {
-      cb.checked = checked;
-      const ch = allBrowserChannels.find(c => c.tvg_id === el.dataset.id);
-      if (ch) toggleSelected(ch.tvg_id, checked, ch);
-    }
+    if (!cb) return;
+    cb.checked = checked;
+    const ch = allBrowserChannels.find(c =>
+      `bch-${c.tvg_id.replace(/[^a-z0-9]/gi,'_')}` === cb.id);
+    if (ch) toggleSelected(ch.tvg_id, checked, ch);
   });
 }
+
+// ── Selection management ─────────────────────────────────────────────────
 
 function toggleSelected(tvgId, checked, chData) {
   if (checked) {
@@ -272,29 +446,22 @@ function toggleSelected(tvgId, checked, chData) {
 }
 
 function renderSelected() {
-  const list = document.getElementById('selected-list');
+  const list  = document.getElementById('selected-list');
   const empty = document.getElementById('selected-empty');
   const count = document.getElementById('sel-count');
   count.textContent = selected.size;
-
-  if (selected.size === 0) {
-    list.innerHTML = '';
-    empty.style.display = '';
-    return;
-  }
+  if (!selected.size) { list.innerHTML = ''; empty.style.display = ''; return; }
   empty.style.display = 'none';
   list.innerHTML = [...selected.values()].map(ch => `
-    <div class="list-group-item list-group-item-action d-flex align-items-center gap-2 py-1 px-2">
-      ${ch.logo ? `<img src="${ch.logo}" alt="" style="width:20px;height:20px;object-fit:contain;flex-shrink:0"
+    <div class="list-group-item d-flex align-items-center gap-2 py-1 px-2">
+      ${ch.logo ? `<img src="${escHtml(ch.logo)}" alt="" style="width:20px;height:20px;object-fit:contain;flex-shrink:0"
                        onerror="this.style.display='none'">` : ''}
-      <span class="flex-grow-1 small">${ch.name}</span>
-      <button type="button" class="btn btn-xs btn-outline-danger"
-              onclick="toggleSelected('${ch.tvg_id}', false);
-                       document.getElementById('bch-${ch.tvg_id}')?.checked == false">
+      <span class="flex-grow-1 small text-truncate">${escHtml(ch.name)}</span>
+      <button type="button" class="btn btn-xs btn-outline-danger flex-shrink-0"
+              onclick="toggleSelected('${ch.tvg_id}',false)">
         <i class="bi bi-x"></i>
       </button>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
 function clearSelection() {
@@ -304,6 +471,8 @@ function clearSelection() {
   renderSelected();
 }
 
+// ── Import / export ──────────────────────────────────────────────────────
+
 async function importSelected() {
   if (!selected.size) { showToast('No channels selected.', 'warning'); return; }
   const btn = document.getElementById('import-btn');
@@ -312,27 +481,13 @@ async function importSelected() {
     const r = await fetch('/playlist/import', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        channels: [...selected.values()],
-        source_id: currentSourceId || 'manual'
-      })
+      body: JSON.stringify({channels: [...selected.values()], source_id: currentSourceId || 'manual'})
     });
     const d = await r.json();
     showToast(`Imported ${d.imported} channel(s).`, 'success');
-    // Mark as added in browser
-    [...selected.keys()].forEach(id => {
-      configuredIds.add(id);
-      const el = document.querySelector(`.browser-item[data-id="${id}"]`);
-      if (el && !el.querySelector('.badge')) {
-        el.querySelector('label').insertAdjacentHTML('afterend',
-          '<span class="badge bg-success-subtle text-success-emphasis ms-auto">Added</span>');
-      }
-    });
-  } catch(e) {
-    showToast('Error: ' + e.message, 'danger');
-  } finally {
-    btn.disabled = false;
-  }
+    [...selected.keys()].forEach(id => configuredIds.add(id));
+  } catch(e) { showToast('Error: ' + e.message, 'danger'); }
+  finally { btn.disabled = false; }
 }
 
 async function generateM3U8() {
@@ -344,18 +499,12 @@ async function generateM3U8() {
   });
   if (r.ok) {
     const blob = await r.blob();
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'radio.m3u8';
-    a.click();
-  } else {
-    const d = await r.json();
-    showToast(d.error || 'Generation failed', 'danger');
-  }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'radio.m3u8'; a.click();
+  } else { showToast('Generation failed', 'danger'); }
 }
 
 async function exportEnabled() {
-  // Collect all enabled configured channel IDs
   const r = await fetch('/playlist/generate', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
@@ -363,13 +512,17 @@ async function exportEnabled() {
   });
   if (r.ok) {
     const blob = await r.blob();
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'radio.m3u8';
-    a.click();
-  } else {
-    showToast('No enabled channels to export.', 'warning');
-  }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'radio.m3u8'; a.click();
+  } else { showToast('No enabled channels to export.', 'warning'); }
+}
+
+// ── Utility ──────────────────────────────────────────────────────────────
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/"/g,'&quot;')
+    .replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 </script>
 {% endblock %}
