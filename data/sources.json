@@ -17,6 +17,12 @@
       "name": "BBC (Non-UK)",
       "url": "https://raw.githubusercontent.com/fhdm-dev/radio/master/pl/BBC%20(Non-UK).m3u",
       "description": "BBC radio stations accessible outside the UK"
+    },
+    {
+      "id": "iprd_global",
+      "name": "IPRD Global Catalogue",
+      "url": "https://iprd-org.github.io/iprd/site_data/all_stations.m3u",
+      "description": "Internet Protocol Radio Directory — global station catalogue"
     }
   ]
 }
