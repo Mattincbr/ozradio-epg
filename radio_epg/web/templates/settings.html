@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="h4 mb-0"><i class="bi bi-gear me-2"></i>Settings</h1>
+</div>
+
+<div class="row">
+  <div class="col-md-7">
+    <form method="post">
+      <div class="card mb-4">
+        <div class="card-header fw-semibold">AI Schedule Extraction</div>
+        <div class="card-body">
+          <p class="text-muted small mb-3">
+            Provide an <strong>Anthropic API key</strong> to enable screenshot import on the schedule editor.
+            Claude will read your uploaded image and extract programme times automatically.
+            Get a key at <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a>.
+          </p>
+          <div class="mb-3">
+            <label class="form-label" for="anthropic_api_key">Anthropic API Key</label>
+            <input
+              type="password"
+              class="form-control font-monospace"
+              id="anthropic_api_key"
+              name="anthropic_api_key"
+              value="{{ settings.get('anthropic_api_key', '') }}"
+              placeholder="sk-ant-…"
+              autocomplete="off">
+            <div class="form-text">
+              Stored locally in <code>data/settings.json</code> — never sent anywhere except the Anthropic API.
+            </div>
+          </div>
+
+          {% if settings.get('anthropic_api_key') %}
+            <div class="alert alert-success py-2 mb-0 small">
+              <i class="bi bi-check-circle me-1"></i>API key is set — screenshot import is enabled.
+            </div>
+          {% else %}
+            <div class="alert alert-secondary py-2 mb-0 small">
+              <i class="bi bi-info-circle me-1"></i>No API key set — screenshot import is disabled.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-floppy me-1"></i>Save Settings
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

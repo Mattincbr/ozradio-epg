@@ -14,8 +14,8 @@
     </nav>
   </div>
   <div class="ms-auto d-flex gap-2">
-    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#scrapeModal">
-      <i class="bi bi-cloud-download me-1"></i>Scrape from website
+    <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#importModal">
+      <i class="bi bi-cloud-download me-1"></i>Import Schedule
     </button>
     <button class="btn btn-primary btn-sm" onclick="saveSchedule()">
       <i class="bi bi-floppy me-1"></i>Save Schedule
@@ -54,42 +54,154 @@
   </div>
 </div>
 
-<!-- Scrape Modal -->
-<div class="modal fade" id="scrapeModal" tabindex="-1">
-  <div class="modal-dialog">
-    <form action="{{ url_for('schedule_scrape', tvg_id=channel.tvg_id) }}" method="post">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Scrape Schedule from Website</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <p class="text-muted small">
-            Supports ABC Australia station pages:<br>
-            <code>https://www.abc.net.au/{city}/station-epg</code>
-          </p>
-          <div class="mb-3">
-            <label class="form-label">Station EPG URL</label>
-            <input type="url" name="url" class="form-control"
-                   placeholder="https://www.abc.net.au/brisbane/station-epg"
-                   value="{{ channel.get('website','') or '' }}">
+<!-- ================================================================ Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-cloud-download me-2"></i>Import Schedule</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+
+        <!-- Source tabs -->
+        <ul class="nav nav-tabs mb-3" id="importTabs">
+          <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#imp-url">
+              <i class="bi bi-link-45deg me-1"></i>From URL
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#imp-text">
+              <i class="bi bi-clipboard-fill me-1"></i>Paste Text
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#imp-image">
+              <i class="bi bi-image me-1"></i>Screenshot
+            </button>
+          </li>
+        </ul>
+
+        <div class="tab-content">
+
+          <!-- ---- URL tab ---- -->
+          <div class="tab-pane fade show active" id="imp-url">
+            <p class="text-muted small">
+              Paste any station schedule page URL. Works with ABC, BBC, and most
+              sites that embed schedule data in their pages.
+            </p>
+            <div class="mb-3">
+              <label class="form-label">Schedule page URL</label>
+              <input type="url" id="importUrl" class="form-control"
+                placeholder="https://www.abc.net.au/radio/brisbane/programs"
+                value="{{ channel.get('website','') or '' }}">
+            </div>
+            <button type="button" class="btn btn-primary" onclick="runImport('url')">
+              <i class="bi bi-search me-1"></i>Fetch &amp; Preview
+            </button>
+          </div>
+
+          <!-- ---- Text tab ---- -->
+          <div class="tab-pane fade" id="imp-text">
+            <p class="text-muted small">
+              Copy text from a schedule page (select all, Ctrl/Cmd+C) and paste it below.
+              The parser recognises times in most formats (6:00 AM, 06:00, 6am …)
+              and day headers (Monday, Saturday, Weekdays …).
+            </p>
+            <div class="mb-2">
+              <label class="form-label">Pasted schedule text</label>
+              <textarea id="importText" class="form-control font-monospace" rows="9"
+                placeholder="Example:
+Monday
+6:00 AM Breakfast
+9:00 AM Morning Show - Hosted by Jane Smith
+12:00 PM Midday News
+
+Saturday
+7:00 AM Weekend Breakfast
+10:00 AM Weekend Mix"></textarea>
+            </div>
+            <div class="row g-2 align-items-center mb-3">
+              <div class="col-auto">
+                <label class="col-form-label small">Default day for unlabelled lines:</label>
+              </div>
+              <div class="col-auto">
+                <select id="importTextDay" class="form-select form-select-sm">
+                  <option value="weekdays">Weekdays (Mon–Fri)</option>
+                  <option value="default">Every day</option>
+                  <option value="monday">Monday</option>
+                  <option value="tuesday">Tuesday</option>
+                  <option value="wednesday">Wednesday</option>
+                  <option value="thursday">Thursday</option>
+                  <option value="friday">Friday</option>
+                  <option value="saturday">Saturday</option>
+                  <option value="sunday">Sunday</option>
+                  <option value="weekend">Weekend</option>
+                </select>
+              </div>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="runImport('text')">
+              <i class="bi bi-magic me-1"></i>Parse &amp; Preview
+            </button>
+          </div>
+
+          <!-- ---- Screenshot tab ---- -->
+          <div class="tab-pane fade" id="imp-image">
+            <p class="text-muted small">
+              Upload a screenshot of a schedule page and Claude will read it for you.
+              Requires an <strong>Anthropic API key</strong> — add one in
+              <a href="{{ url_for('settings') }}" target="_blank">Settings</a>.
+            </p>
+            <div class="mb-3">
+              <label class="form-label">Screenshot file</label>
+              <input type="file" id="importImageFile" class="form-control"
+                accept="image/png,image/jpeg,image/webp,image/gif">
+            </div>
+            <!-- Preview of selected image -->
+            <div id="imgPreviewWrap" class="mb-3" style="display:none">
+              <img id="imgPreview" class="img-thumbnail" style="max-height:200px">
+            </div>
+            <button type="button" class="btn btn-primary" onclick="runImport('image')">
+              <i class="bi bi-cpu me-1"></i>Analyse with AI &amp; Preview
+            </button>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-          <button type="submit" class="btn btn-primary">Scrape & Save</button>
+
+        <!-- Spinner (hidden by default) -->
+        <div id="importSpinner" class="text-center py-3" style="display:none">
+          <div class="spinner-border text-primary" role="status"></div>
+          <div class="mt-2 text-muted small" id="importSpinnerMsg">Working…</div>
         </div>
-      </div>
-    </form>
+
+        <!-- Preview results -->
+        <div id="importPreview" class="mt-3" style="display:none">
+          <hr>
+          <div class="d-flex align-items-center mb-2">
+            <h6 class="mb-0 me-2">Preview</h6>
+            <span class="badge bg-secondary" id="previewBadge"></span>
+          </div>
+          <div id="previewDays" class="small"></div>
+          <div class="mt-3 d-flex gap-2">
+            <button type="button" class="btn btn-success" onclick="applyImport()">
+              <i class="bi bi-check2-circle me-1"></i>Apply to Schedule
+            </button>
+            <button type="button" class="btn btn-outline-secondary" onclick="clearPreview()">
+              Clear
+            </button>
+          </div>
+        </div>
+
+      </div><!-- /modal-body -->
+    </div>
   </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-// Initial schedule data from server
 const scheduleData = {{ schedule | tojson }};
-const channelId = {{ channel.tvg_id | tojson }};
+const channelId    = {{ channel.tvg_id | tojson }};
 
 const DAY_LABELS = {
   weekdays: 'Weekdays (Mon–Fri)', saturday: 'Saturday', sunday: 'Sunday',
@@ -97,150 +209,116 @@ const DAY_LABELS = {
   thursday: 'Thursday', friday: 'Friday', weekend: 'Weekend', default: 'Default'
 };
 
+// ---------------------------------------------------------------- init
 function init() {
-  const tabs = document.getElementById('dayTabs');
-  const content = document.getElementById('dayTabContent');
   const days = Object.keys(scheduleData);
-
-  if (days.length === 0) {
-    addDayPattern('weekdays');
-    return;
-  }
-
-  days.forEach((day, i) => {
-    addTab(day, scheduleData[day] || [], i === 0);
-  });
+  if (days.length === 0) { addDayPattern('weekdays'); return; }
+  days.forEach((day, i) => addTab(day, scheduleData[day] || [], i === 0));
 }
 
+// ---------------------------------------------------------------- tabs
 function addDayPattern(day) {
   if (document.getElementById(`tab-${day}`)) {
     document.querySelector(`#tab-${day} button`).click();
     return;
   }
   addTab(day, [], false);
-  // Activate new tab
-  const btn = document.querySelector(`#tab-${day} button`);
-  new bootstrap.Tab(btn).show();
+  new bootstrap.Tab(document.querySelector(`#tab-${day} button`)).show();
 }
 
 function addTab(day, slots, active) {
-  const tabs = document.getElementById('dayTabs');
+  const tabs    = document.getElementById('dayTabs');
   const content = document.getElementById('dayTabContent');
-  const label = DAY_LABELS[day] || day;
+  const label   = DAY_LABELS[day] || day;
 
   const li = document.createElement('li');
   li.className = 'nav-item';
   li.id = `tab-${day}`;
-  li.innerHTML = `
-    <button class="nav-link ${active ? 'active' : ''}" data-bs-toggle="tab"
-            data-bs-target="#panel-${day}" type="button">${label}</button>
-  `;
+  li.innerHTML = `<button class="nav-link ${active?'active':''}" data-bs-toggle="tab"
+    data-bs-target="#panel-${day}" type="button">${label}</button>`;
   tabs.appendChild(li);
 
   const panel = document.createElement('div');
-  panel.className = `tab-pane fade ${active ? 'show active' : ''}`;
-  panel.id = `panel-${day}`;
+  panel.className = `tab-pane fade ${active?'show active':''}`;
+  panel.id        = `panel-${day}`;
   panel.dataset.day = day;
   panel.innerHTML = `
     <div class="table-responsive">
       <table class="table table-sm schedule-table">
-        <thead>
-          <tr>
-            <th style="width:90px">Start</th>
-            <th>Title</th>
-            <th style="width:180px">Presenter</th>
-            <th>Description</th>
-            <th style="width:90px">Duration<br><small class="text-muted fw-normal">mins</small></th>
-            <th style="width:40px"></th>
-          </tr>
-        </thead>
+        <thead><tr>
+          <th style="width:90px">Start</th>
+          <th>Title</th>
+          <th style="width:180px">Presenter</th>
+          <th>Description</th>
+          <th style="width:90px">Duration<br><small class="text-muted fw-normal">mins</small></th>
+          <th style="width:40px"></th>
+        </tr></thead>
         <tbody class="slot-body"></tbody>
       </table>
     </div>
     <div class="d-flex gap-2 mt-2">
-      <button type="button" class="btn btn-sm btn-outline-primary"
-              onclick="addSlot('${day}')">
+      <button type="button" class="btn btn-sm btn-outline-primary" onclick="addSlot('${day}')">
         <i class="bi bi-plus-lg me-1"></i>Add Slot
       </button>
-      <button type="button" class="btn btn-sm btn-outline-danger ms-auto"
-              onclick="removeDay('${day}')">
+      <button type="button" class="btn btn-sm btn-outline-danger ms-auto" onclick="removeDay('${day}')">
         <i class="bi bi-trash me-1"></i>Remove Day
       </button>
-    </div>
-  `;
+    </div>`;
   content.appendChild(panel);
 
   slots.forEach(slot => addSlotRow(day, slot));
 }
 
-function addSlot(day) {
-  addSlotRow(day, {});
-}
-
-function addSlotRow(day, slot) {
-  const tbody = document.querySelector(`#panel-${day} .slot-body`);
-  const tr = document.createElement('tr');
-  const dur = slot.duration != null ? slot.duration : '';
-  tr.innerHTML = `
-    <td>
-      <input type="time" class="form-control form-control-sm" data-field="start"
-             value="${slot.start || ''}" required>
-    </td>
-    <td>
-      <input type="text" class="form-control form-control-sm" data-field="title"
-             value="${escHtml(slot.title || '')}" placeholder="Programme title">
-    </td>
-    <td>
-      <input type="text" class="form-control form-control-sm" data-field="presenter"
-             value="${escHtml(slot.presenter || '')}" placeholder="Presenter name">
-    </td>
-    <td>
-      <input type="text" class="form-control form-control-sm" data-field="description"
-             value="${escHtml(slot.description || '')}" placeholder="Short description">
-    </td>
-    <td>
-      <input type="number" class="form-control form-control-sm" data-field="duration"
-             value="${dur}" min="1" placeholder="auto">
-    </td>
-    <td>
-      <button type="button" class="btn btn-xs btn-outline-danger" onclick="this.closest('tr').remove()">
-        <i class="bi bi-x-lg"></i>
-      </button>
-    </td>
-  `;
-  tbody.appendChild(tr);
-}
-
+function addSlot(day)          { addSlotRow(day, {}); }
 function removeDay(day) {
   if (!confirm(`Remove the "${DAY_LABELS[day]||day}" pattern?`)) return;
   document.getElementById(`tab-${day}`)?.remove();
   document.getElementById(`panel-${day}`)?.remove();
-  // Activate first remaining tab
   const first = document.querySelector('#dayTabs .nav-link');
   if (first) new bootstrap.Tab(first).show();
 }
 
+function addSlotRow(day, slot) {
+  const tbody = document.querySelector(`#panel-${day} .slot-body`);
+  const tr    = document.createElement('tr');
+  const dur   = slot.duration != null ? slot.duration : '';
+  tr.innerHTML = `
+    <td><input type="time"   class="form-control form-control-sm" data-field="start"
+               value="${slot.start||''}" required></td>
+    <td><input type="text"   class="form-control form-control-sm" data-field="title"
+               value="${escHtml(slot.title||'')}" placeholder="Programme title"></td>
+    <td><input type="text"   class="form-control form-control-sm" data-field="presenter"
+               value="${escHtml(slot.presenter||'')}" placeholder="Presenter name"></td>
+    <td><input type="text"   class="form-control form-control-sm" data-field="description"
+               value="${escHtml(slot.description||'')}" placeholder="Short description"></td>
+    <td><input type="number" class="form-control form-control-sm" data-field="duration"
+               value="${dur}" min="1" placeholder="auto"></td>
+    <td><button type="button" class="btn btn-xs btn-outline-danger"
+                onclick="this.closest('tr').remove()">
+          <i class="bi bi-x-lg"></i></button></td>`;
+  tbody.appendChild(tr);
+}
+
+// ---------------------------------------------------------------- collect / save
 function collectSchedule() {
   const result = {};
   document.querySelectorAll('#dayTabContent .tab-pane').forEach(panel => {
-    const day = panel.dataset.day;
+    const day   = panel.dataset.day;
     const slots = [];
     panel.querySelectorAll('.slot-body tr').forEach(row => {
-      const get = f => row.querySelector(`[data-field="${f}"]`)?.value?.trim() || '';
-      const start = get('start');
-      const title = get('title');
-      if (!start || !title) return;
+      const get = f => row.querySelector(`[data-field="${f}"]`)?.value?.trim()||'';
+      const start = get('start'), title = get('title');
+      if (!start||!title) return;
       const slot = {start, title};
-      const presenter = get('presenter');
+      const presenter   = get('presenter');
       const description = get('description');
-      const durStr = get('duration');
-      if (presenter) slot.presenter = presenter;
+      const durStr      = get('duration');
+      if (presenter)   slot.presenter   = presenter;
       if (description) slot.description = description;
-      if (durStr) slot.duration = parseInt(durStr, 10);
+      if (durStr)      slot.duration    = parseInt(durStr, 10);
       slots.push(slot);
     });
-    // Sort by start time
-    slots.sort((a, b) => a.start.localeCompare(b.start));
+    slots.sort((a,b) => a.start.localeCompare(b.start));
     if (slots.length) result[day] = slots;
   });
   return result;
@@ -248,7 +326,7 @@ function collectSchedule() {
 
 async function saveSchedule() {
   const schedule = collectSchedule();
-  if (Object.keys(schedule).length === 0) {
+  if (!Object.keys(schedule).length) {
     showToast('Add at least one slot before saving.', 'warning');
     return;
   }
@@ -256,18 +334,123 @@ async function saveSchedule() {
     const r = await fetch(window.location.href, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(schedule)
+      body: JSON.stringify(schedule),
     });
     const d = await r.json();
     if (d.success) showToast('Schedule saved!', 'success');
     else showToast(d.error || 'Save failed', 'danger');
-  } catch (e) {
+  } catch(e) {
     showToast('Network error: ' + e.message, 'danger');
   }
 }
 
+// ---------------------------------------------------------------- import
+let _importedDays = {};
+
+async function runImport(type) {
+  clearPreview();
+  const spinner = document.getElementById('importSpinner');
+  const msg     = document.getElementById('importSpinnerMsg');
+  spinner.style.display = '';
+
+  let body, isFormData = false;
+
+  if (type === 'url') {
+    const url = document.getElementById('importUrl').value.trim();
+    if (!url) { spinner.style.display='none'; return showToast('Enter a URL', 'warning'); }
+    msg.textContent = 'Fetching and parsing schedule…';
+    body = JSON.stringify({type:'url', url});
+
+  } else if (type === 'text') {
+    const text = document.getElementById('importText').value.trim();
+    if (!text) { spinner.style.display='none'; return showToast('Paste some schedule text first.', 'warning'); }
+    const day = document.getElementById('importTextDay').value;
+    msg.textContent = 'Parsing pasted text…';
+    body = JSON.stringify({type:'text', text, day});
+
+  } else if (type === 'image') {
+    const file = document.getElementById('importImageFile').files[0];
+    if (!file) { spinner.style.display='none'; return showToast('Select an image file.', 'warning'); }
+    msg.textContent = 'Sending image to Claude AI…';
+    const fd = new FormData();
+    fd.append('type', 'image');
+    fd.append('file', file);
+    body = fd;
+    isFormData = true;
+  }
+
+  try {
+    const headers = isFormData ? {} : {'Content-Type':'application/json'};
+    const r = await fetch(`/api/schedule/${channelId}/import`, {method:'POST', headers, body});
+    const data = await r.json();
+    spinner.style.display = 'none';
+    if (!data.ok) return showToast(data.error || 'Import failed', 'danger');
+    _importedDays = data.days;
+    showImportPreview(data.days);
+  } catch(e) {
+    spinner.style.display = 'none';
+    showToast('Error: ' + e.message, 'danger');
+  }
+}
+
+function showImportPreview(days) {
+  const container = document.getElementById('previewDays');
+  container.innerHTML = '';
+  let total = 0;
+
+  for (const [day, slots] of Object.entries(days)) {
+    total += slots.length;
+    const label = DAY_LABELS[day] || day;
+    const ul    = slots.slice(0,6).map(s =>
+      `<li>${s.start} — ${escHtml(s.title)}${s.presenter ? ' <span class="text-muted">· '+escHtml(s.presenter)+'</span>':''}</li>`
+    ).join('');
+    const more = slots.length > 6 ? `<li class="text-muted">… and ${slots.length-6} more</li>` : '';
+    const div  = document.createElement('div');
+    div.className = 'mb-2';
+    div.innerHTML = `<strong>${label}</strong> <span class="text-muted">(${slots.length} slots)</span><ul class="mb-0">${ul}${more}</ul>`;
+    container.appendChild(div);
+  }
+
+  document.getElementById('previewBadge').textContent =
+    `${total} slot${total!==1?'s':''} · ${Object.keys(days).length} day pattern${Object.keys(days).length!==1?'s':''}`;
+  document.getElementById('importPreview').style.display = '';
+}
+
+function clearPreview() {
+  document.getElementById('importPreview').style.display = 'none';
+  document.getElementById('previewDays').innerHTML = '';
+  _importedDays = {};
+}
+
+function applyImport() {
+  for (const [day, slots] of Object.entries(_importedDays)) {
+    if (!document.getElementById(`tab-${day}`)) {
+      addTab(day, slots, false);
+    } else {
+      const tbody = document.querySelector(`#panel-${day} .slot-body`);
+      tbody.innerHTML = '';
+      slots.forEach(slot => addSlotRow(day, slot));
+    }
+  }
+  bootstrap.Modal.getInstance(document.getElementById('importModal')).hide();
+  showToast('Imported — review the slots, then Save.', 'success');
+}
+
+// ---------------------------------------------------------------- image preview
+document.getElementById('importImageFile').addEventListener('change', function() {
+  const wrap = document.getElementById('imgPreviewWrap');
+  const img  = document.getElementById('imgPreview');
+  if (this.files[0]) {
+    img.src = URL.createObjectURL(this.files[0]);
+    wrap.style.display = '';
+  } else {
+    wrap.style.display = 'none';
+  }
+});
+
+// ---------------------------------------------------------------- utils
 function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 init();

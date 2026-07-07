@@ -208,9 +208,6 @@ def register_routes(app: Flask) -> None:
             return redirect(url_for("schedule_edit", tvg_id=tvg_id))
 
         scraper = _pick_scraper(scrape_url)
-        if not scraper:
-            flash(f"No scraper available for that URL.", "danger")
-            return redirect(url_for("schedule_edit", tvg_id=tvg_id))
         try:
             weekly = scraper.scrape(scrape_url)
             schedule_dict: dict = {}
@@ -231,6 +228,99 @@ def register_routes(app: Flask) -> None:
         except ScraperError as exc:
             flash(f"Scrape failed: {exc}", "danger")
         return redirect(url_for("schedule_edit", tvg_id=tvg_id))
+
+    @app.route("/api/schedule/<tvg_id>/import", methods=["POST"])
+    def schedule_import_api(tvg_id: str):
+        """AJAX import endpoint: URL / text / image → {ok, days}."""
+        ch = store().get_channel(tvg_id)
+        if not ch:
+            return jsonify({"ok": False, "error": "Channel not found"}), 404
+
+        ct = request.content_type or ""
+        if "multipart" in ct:
+            import_type = request.form.get("type", "image")
+        else:
+            body = request.get_json(silent=True) or {}
+            import_type = body.get("type", "url")
+
+        try:
+            if import_type == "url":
+                url = body.get("url", "").strip()
+                if not url:
+                    return jsonify({"ok": False, "error": "No URL provided"})
+                scraper = _pick_scraper(url)
+                weekly = scraper.scrape(url)
+                days = _weekly_to_dict(weekly)
+                return jsonify({"ok": True, "days": days})
+
+            elif import_type == "text":
+                text = body.get("text", "").strip()
+                default_day = body.get("day", "weekdays")
+                if not text:
+                    return jsonify({"ok": False, "error": "No text provided"})
+                from ..scrapers.text_parser import parse_schedule_text
+                days = parse_schedule_text(text, default_day=default_day)
+                if not days:
+                    return jsonify({"ok": False, "error": "No schedule slots found in the pasted text."})
+                return jsonify({"ok": True, "days": days})
+
+            elif import_type == "image":
+                api_key = (
+                    store().get_setting("anthropic_api_key", "") or
+                    os.environ.get("ANTHROPIC_API_KEY", "")
+                )
+                if not api_key:
+                    return jsonify({
+                        "ok": False,
+                        "error": "No Anthropic API key configured. Add one in Settings.",
+                    })
+                file = request.files.get("file")
+                if not file:
+                    return jsonify({"ok": False, "error": "No image file uploaded"})
+                image_bytes = file.read()
+                ext = Path(secure_filename(file.filename or "img.jpg")).suffix.lower()
+                media_type = {
+                    ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+                    ".png": "image/png", ".gif": "image/gif", ".webp": "image/webp",
+                }.get(ext, "image/jpeg")
+                from ..scrapers.image_parser import parse_image_with_claude
+                days = parse_image_with_claude(image_bytes, media_type, api_key)
+                if not days:
+                    return jsonify({"ok": False, "error": "No schedule data found in the image."})
+                return jsonify({"ok": True, "days": days})
+
+            else:
+                return jsonify({"ok": False, "error": f"Unknown import type: {import_type}"})
+
+        except ScraperError as exc:
+            return jsonify({"ok": False, "error": str(exc)})
+        except Exception as exc:
+            return jsonify({"ok": False, "error": f"Import failed: {exc}"})
+
+    @app.route("/settings", methods=["GET", "POST"])
+    def settings():
+        if request.method == "POST":
+            api_key = request.form.get("anthropic_api_key", "").strip()
+            store().set_setting("anthropic_api_key", api_key)
+            flash("Settings saved.", "success")
+            return redirect(url_for("settings"))
+        current = store().get_settings()
+        return render_template("settings.html", settings=current)
+
+    def _weekly_to_dict(weekly) -> dict:
+        days = {}
+        for day_key, day_sched in weekly.days.items():
+            days[day_key] = [
+                {k: v for k, v in {
+                    "start": s.start,
+                    "title": s.title,
+                    "presenter": s.presenter,
+                    "description": s.description,
+                    "duration": s.duration,
+                }.items() if v}
+                for s in day_sched.slots
+            ]
+        return days
 
     def _save_schedule(tvg_id: str, ch: dict, schedule_dict: dict,
                        timezone: str | None = None) -> None:
@@ -708,7 +798,8 @@ def register_routes(app: Flask) -> None:
 def _pick_scraper(url: str):
     if "abc.net.au" in url:
         return ABCScraper()
-    return None
+    from ..scrapers.generic import GenericScraper
+    return GenericScraper()
 
 
 def _common_timezones() -> list[str]:

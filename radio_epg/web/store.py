@@ -175,6 +175,24 @@ class Store:
         return data.get("channels", [])
 
     # ------------------------------------------------------------------
+    # Settings (key-value)
+    # ------------------------------------------------------------------
+
+    def get_settings(self) -> dict:
+        return self._read("settings", {})
+
+    def save_settings(self, settings: dict) -> None:
+        self._write("settings", settings)
+
+    def get_setting(self, key: str, default=None):
+        return self.get_settings().get(key, default)
+
+    def set_setting(self, key: str, value) -> None:
+        s = self.get_settings()
+        s[key] = value
+        self.save_settings(s)
+
+    # ------------------------------------------------------------------
     # Images metadata
     # ------------------------------------------------------------------
 
