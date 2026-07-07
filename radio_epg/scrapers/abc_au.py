@@ -23,41 +23,75 @@ from .base import BaseScraper, ScraperError
 
 
 _ABC_API_PATTERNS = [
+    # ABC Listen guide API (current as of 2024+)
+    "https://www.abc.net.au/api/listen/windows/radio/guide?station={slug}",
+    "https://www.abc.net.au/api/listen/radio/schedule/{slug}",
+    # Legacy endpoints (kept as fallbacks)
     "https://www.abc.net.au/api/public/programmes/station/{slug}",
     "https://www.abc.net.au/api/radio/schedule/{slug}",
     "https://www.abc.net.au/radio/{slug}/programs.json",
 ]
 
 _STATION_TIMEZONE: dict[str, str] = {
-    "brisbane":   "Australia/Brisbane",
-    "sydney":     "Australia/Sydney",
-    "melbourne":  "Australia/Melbourne",
-    "perth":      "Australia/Perth",
-    "adelaide":   "Australia/Adelaide",
-    "hobart":     "Australia/Hobart",
-    "darwin":     "Australia/Darwin",
-    "canberra":   "Australia/Sydney",
-    "newcastle":  "Australia/Sydney",
-    "wollongong": "Australia/Sydney",
-    "goldcoast":  "Australia/Brisbane",
-    "sunshine":   "Australia/Brisbane",
-    "tropical":   "Australia/Brisbane",
-    "northwest":  "Australia/Perth",
-    "great":      "Australia/Perth",
-    "ballarat":   "Australia/Melbourne",
-    "bendigo":    "Australia/Melbourne",
-    "gippsland":  "Australia/Melbourne",
-    "shepparton": "Australia/Melbourne",
+    # City-based local stations
+    "brisbane":      "Australia/Brisbane",
+    "sydney":        "Australia/Sydney",
+    "melbourne":     "Australia/Melbourne",
+    "perth":         "Australia/Perth",
+    "adelaide":      "Australia/Adelaide",
+    "hobart":        "Australia/Hobart",
+    "darwin":        "Australia/Darwin",
+    "canberra":      "Australia/Sydney",
+    "newcastle":     "Australia/Sydney",
+    "wollongong":    "Australia/Sydney",
+    "goldcoast":     "Australia/Brisbane",
+    "sunshine":      "Australia/Brisbane",
+    "tropical":      "Australia/Brisbane",
+    "northwest":     "Australia/Perth",
+    "great":         "Australia/Perth",
+    "ballarat":      "Australia/Melbourne",
+    "bendigo":       "Australia/Melbourne",
+    "gippsland":     "Australia/Melbourne",
+    "shepparton":    "Australia/Melbourne",
+    # National network slugs (from /listen/{slug}/guide URLs)
+    "radionational": "Australia/Sydney",
+    "triplej":       "Australia/Sydney",
+    "classic":       "Australia/Sydney",
+    "doublej":       "Australia/Sydney",
+    "newsradio":     "Australia/Sydney",
+    "kidslisten":    "Australia/Sydney",
+    "jazz":          "Australia/Sydney",
+    "country":       "Australia/Sydney",
+    "aboriginal":    "Australia/Sydney",
+}
+
+# Pretty display names for /listen/ network slugs
+_LISTEN_DISPLAY_NAMES: dict[str, str] = {
+    "radionational": "ABC Radio National",
+    "triplej":       "triple j",
+    "classic":       "ABC Classic",
+    "doublej":       "Double J",
+    "newsradio":     "ABC NewsRadio",
+    "kidslisten":    "ABC Kids Listen",
+    "jazz":          "ABC Jazz",
+    "country":       "ABC Country",
+    "aboriginal":    "ABC Indigenous",
 }
 
 _DAY_NAMES = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
 # Keys in a programme object that likely hold a start time
 _START_KEYS = ("startTime", "start", "broadcastDateTime", "broadcast_time", "air_time",
-               "scheduledStart", "scheduled_start", "timeFrom", "time_from")
+               "scheduledStart", "scheduled_start", "timeFrom", "time_from", "publishedDate")
 _TITLE_KEYS = ("title", "programName", "name", "program_name", "programTitle", "program_title")
 _END_KEYS   = ("endTime", "end", "scheduledEnd", "scheduled_end", "timeTo", "time_to")
-_DESC_KEYS  = ("synopsis", "description", "shortSynopsis", "short_synopsis", "summary", "body")
+_DESC_KEYS  = ("synopsis", "description", "shortSynopsis", "short_synopsis", "summary", "body",
+               "longSynopsis", "long_synopsis")
+# Image: both direct-URL keys and nested-object keys
+_IMAGE_DIRECT_KEYS = ("imageUrl", "thumbnailUrl", "thumbnail_url", "image_url",
+                      "artworkUrl", "artwork_url", "tileImageUrl")
+_IMAGE_OBJ_KEYS    = ("image", "thumbnail", "artwork", "coverImage", "cover",
+                      "tile", "tileImage", "keyArtwork", "squareImage")
 _HOST_KEYS  = ("presenter", "presenterName", "host", "talent", "presenter_name")
 
 
@@ -229,6 +263,7 @@ def _parse_programme_list(items: list, slug: str, timezone: str, source_url: str
 
         synopsis = _first(item, _DESC_KEYS, "").strip()
         presenter = _first(item, _HOST_KEYS, "").strip()
+        image = _extract_image_url(item)
 
         slot = TimeSlot(
             start=dt.strftime("%H:%M"),
@@ -236,6 +271,7 @@ def _parse_programme_list(items: list, slug: str, timezone: str, source_url: str
             description=synopsis,
             presenter=presenter,
             duration=duration,
+            image=image,
         )
         day_slots[day_name].append(slot)
 
@@ -387,21 +423,43 @@ def _normalise_time(raw: str) -> str:
 
 def _extract_station_slug(url: str) -> str:
     parts = urlparse(url).path.strip("/").split("/")
-    # /radio/{slug}/...  or  /{slug}/station-epg
-    if parts and parts[0] == "radio" and len(parts) > 1:
+    # /listen/{slug}/guide  or  /radio/{slug}/...  or  /{slug}/station-epg
+    if parts and parts[0] in ("radio", "listen") and len(parts) > 1:
         return parts[1]
     return parts[0] if parts else "unknown"
 
 
 def _normalise_abc_url(url: str, slug: str) -> str:
-    """Rewrite old station-epg URLs to the current /radio/{slug}/programs form."""
-    if "station-epg" in url:
-        return f"https://www.abc.net.au/radio/{slug}/programs"
+    """Rewrite old station-epg / programs URLs to the current /listen/{slug}/guide form."""
+    if "station-epg" in url or ("/radio/" in url and "/programs" in url):
+        return f"https://www.abc.net.au/listen/{slug}/guide"
     return url
 
 
 def _slug_to_display_name(slug: str) -> str:
+    if slug in _LISTEN_DISPLAY_NAMES:
+        return _LISTEN_DISPLAY_NAMES[slug]
     return "ABC " + slug.replace("-", " ").title()
+
+
+def _extract_image_url(item: dict) -> Optional[str]:
+    """Extract a programme artwork URL from a programme dict, handling ABC's formats."""
+    # Try direct string URL keys first
+    for key in _IMAGE_DIRECT_KEYS:
+        val = item.get(key)
+        if val and isinstance(val, str) and val.startswith("http"):
+            return val
+    # Try nested object keys
+    for key in _IMAGE_OBJ_KEYS:
+        val = item.get(key)
+        if isinstance(val, dict):
+            for sub in ("url", "src", "href", "original", "large", "medium", "small"):
+                u = val.get(sub)
+                if u and isinstance(u, str) and u.startswith("http"):
+                    return u
+        elif isinstance(val, str) and val.startswith("http"):
+            return val
+    return None
 
 
 def _collapse_weekdays(days: dict[str, DaySchedule]) -> dict[str, DaySchedule]:

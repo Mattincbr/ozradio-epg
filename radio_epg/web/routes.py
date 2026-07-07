@@ -210,18 +210,7 @@ def register_routes(app: Flask) -> None:
         scraper = _pick_scraper(scrape_url)
         try:
             weekly = scraper.scrape(scrape_url)
-            schedule_dict: dict = {}
-            for day_key, day_sched in weekly.days.items():
-                schedule_dict[day_key] = [
-                    {k: v for k, v in {
-                        "start": s.start,
-                        "title": s.title,
-                        "presenter": s.presenter,
-                        "description": s.description,
-                        "duration": s.duration,
-                    }.items() if v}
-                    for s in day_sched.slots
-                ]
+            schedule_dict: dict = _weekly_to_dict(weekly)
             _save_schedule(tvg_id, ch, schedule_dict,
                            timezone=weekly.timezone)
             flash("Schedule scraped and saved.", "success")
@@ -332,6 +321,7 @@ def register_routes(app: Flask) -> None:
                     "presenter": s.presenter,
                     "description": s.description,
                     "duration": s.duration,
+                    "image": s.image,
                 }.items() if v}
                 for s in day_sched.slots
             ]

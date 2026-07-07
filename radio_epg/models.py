@@ -30,6 +30,7 @@ class TimeSlot:
     description: str = ""
     presenter: str = ""
     duration: Optional[int] = None   # minutes; if None, runs until next slot
+    image: Optional[str] = None      # programme artwork URL
 
 
 @dataclass

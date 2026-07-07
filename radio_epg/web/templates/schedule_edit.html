@@ -299,11 +299,22 @@ function addSlotRow(day, slot) {
   const tbody = document.querySelector(`#panel-${day} .slot-body`);
   const tr    = document.createElement('tr');
   const dur   = slot.duration != null ? slot.duration : '';
+  const imgBadge = slot.image
+    ? `<img src="${escHtml(slot.image)}" title="${escHtml(slot.title||'')}"
+            class="rounded" style="width:28px;height:28px;object-fit:cover;cursor:pointer"
+            onclick="window.open('${escHtml(slot.image)}','_blank')">`
+    : '';
   tr.innerHTML = `
+    <input type="hidden" data-field="image" value="${escHtml(slot.image||'')}">
     <td><input type="time"   class="form-control form-control-sm" data-field="start"
                value="${slot.start||''}" required></td>
-    <td><input type="text"   class="form-control form-control-sm" data-field="title"
-               value="${escHtml(slot.title||'')}" placeholder="Programme title"></td>
+    <td>
+      <div class="d-flex align-items-center gap-1">
+        ${imgBadge}
+        <input type="text" class="form-control form-control-sm" data-field="title"
+               value="${escHtml(slot.title||'')}" placeholder="Programme title">
+      </div>
+    </td>
     <td><input type="text"   class="form-control form-control-sm" data-field="presenter"
                value="${escHtml(slot.presenter||'')}" placeholder="Presenter name"></td>
     <td><input type="text"   class="form-control form-control-sm" data-field="description"
@@ -330,9 +341,11 @@ function collectSchedule() {
       const presenter   = get('presenter');
       const description = get('description');
       const durStr      = get('duration');
+      const image       = get('image');
       if (presenter)   slot.presenter   = presenter;
       if (description) slot.description = description;
       if (durStr)      slot.duration    = parseInt(durStr, 10);
+      if (image)       slot.image       = image;
       slots.push(slot);
     });
     slots.sort((a,b) => a.start.localeCompare(b.start));

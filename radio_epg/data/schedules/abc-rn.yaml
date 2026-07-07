@@ -3,7 +3,7 @@ _meta:
   display_name: "ABC Radio National"
   description: "Australia's flagship public radio network — news, arts, science and ideas"
   country: AU
-  notes: "Slot positions are stable. Some afternoon programs rotate by weekday."
+  notes: "Slot positions are stable. Some afternoon programs rotate by weekday. Scrape https://www.abc.net.au/listen/radionational/guide for up-to-date programme images."
   match:
     - "radio national"
     - "abc rn"
@@ -15,6 +15,7 @@ channel:
   id: abc-rn
   name: "ABC Radio National"
   timezone: "Australia/Sydney"
+  website: "https://www.abc.net.au/listen/radionational/guide"
 
 schedule:
   weekdays:

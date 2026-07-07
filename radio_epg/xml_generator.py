@@ -91,6 +91,10 @@ def _add_programme(root: ET.Element, prog: Programme) -> None:
         presenter_el = ET.SubElement(credits_el, "presenter")
         presenter_el.text = prog.presenter
 
+    if prog.image:
+        icon = ET.SubElement(el, "icon")
+        icon.set("src", prog.image)
+
 
 def _fmt_dt(dt: datetime) -> str:
     # XMLTV format: "20260601060000 +1000"
