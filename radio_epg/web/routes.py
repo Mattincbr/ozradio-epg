@@ -811,6 +811,9 @@ def _pick_scraper(url: str):
     if any(d in url for d in _nine_radio_domains):
         from ..scrapers.nine_radio import NineRadioScraper
         return NineRadioScraper()
+    if "novafm.com.au" in url or "smoothfm.com.au" in url:
+        from ..scrapers.nova_entertainment import NovaEntertainmentScraper
+        return NovaEntertainmentScraper()
     from ..scrapers.generic import GenericScraper
     return GenericScraper()
 
