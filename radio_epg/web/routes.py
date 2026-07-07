@@ -297,6 +297,21 @@ def register_routes(app: Flask) -> None:
         except Exception as exc:
             return jsonify({"ok": False, "error": f"Import failed: {exc}"})
 
+    @app.route("/api/schedule-library")
+    def schedule_library_list():
+        from ..schedule_library import list_templates, match_templates
+        name = request.args.get("match", "")
+        templates = match_templates(name) if name else list_templates()
+        return jsonify({"templates": templates})
+
+    @app.route("/api/schedule-library/<template_id>")
+    def schedule_library_get(template_id: str):
+        from ..schedule_library import load_template_days
+        days = load_template_days(template_id)
+        if days is None:
+            return jsonify({"ok": False, "error": "Template not found"}), 404
+        return jsonify({"ok": True, "days": days})
+
     @app.route("/settings", methods=["GET", "POST"])
     def settings():
         if request.method == "POST":

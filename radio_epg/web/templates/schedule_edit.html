@@ -67,7 +67,13 @@
         <!-- Source tabs -->
         <ul class="nav nav-tabs mb-3" id="importTabs">
           <li class="nav-item">
-            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#imp-url">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#imp-library"
+                    id="libTabBtn">
+              <i class="bi bi-collection me-1"></i>Station Library
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#imp-url">
               <i class="bi bi-link-45deg me-1"></i>From URL
             </button>
           </li>
@@ -85,8 +91,19 @@
 
         <div class="tab-content">
 
+          <!-- ---- Station Library tab ---- -->
+          <div class="tab-pane fade show active" id="imp-library">
+            <div id="libLoading" class="text-muted small py-2">
+              <div class="spinner-border spinner-border-sm me-1"></div> Loading library…
+            </div>
+            <div id="libContent" style="display:none">
+              <div id="libMatches" class="mb-3"></div>
+              <div id="libAll"></div>
+            </div>
+          </div>
+
           <!-- ---- URL tab ---- -->
-          <div class="tab-pane fade show active" id="imp-url">
+          <div class="tab-pane fade" id="imp-url">
             <p class="text-muted small">
               Paste any station schedule page URL. Works with ABC, BBC, and most
               sites that embed schedule data in their pages.
@@ -434,6 +451,82 @@ function applyImport() {
   }
   bootstrap.Modal.getInstance(document.getElementById('importModal')).hide();
   showToast('Imported — review the slots, then Save.', 'success');
+}
+
+// ---------------------------------------------------------------- station library
+const _channelName = {{ channel.name | tojson }};
+let _libLoaded = false;
+
+document.getElementById('libTabBtn').addEventListener('shown.bs.tab', loadLibrary);
+
+async function loadLibrary() {
+  if (_libLoaded) return;
+  _libLoaded = true;
+  try {
+    // Fetch matching templates and all templates in parallel
+    const [matchRes, allRes] = await Promise.all([
+      fetch(`/api/schedule-library?match=${encodeURIComponent(_channelName)}`).then(r=>r.json()),
+      fetch('/api/schedule-library').then(r=>r.json()),
+    ]);
+
+    const matches = matchRes.templates || [];
+    const all     = allRes.templates   || [];
+
+    const matchIds = new Set(matches.map(t => t.id));
+    const others   = all.filter(t => !matchIds.has(t.id));
+
+    const matchesEl = document.getElementById('libMatches');
+    const allEl     = document.getElementById('libAll');
+
+    if (matches.length) {
+      matchesEl.innerHTML = `<p class="text-muted small mb-2">
+        <i class="bi bi-stars me-1 text-warning"></i>Suggested for <strong>${escHtml(_channelName)}</strong>
+      </p>` + matches.map(libCard).join('');
+    }
+
+    if (others.length) {
+      allEl.innerHTML = `<p class="text-muted small mt-3 mb-2">All available templates</p>` +
+        others.map(libCard).join('');
+    }
+
+    document.getElementById('libLoading').style.display = 'none';
+    document.getElementById('libContent').style.display = '';
+  } catch(e) {
+    document.getElementById('libLoading').textContent = 'Could not load library: ' + e.message;
+  }
+}
+
+function libCard(t) {
+  const flag = {'AU':'🇦🇺','GB':'🇬🇧','US':'🇺🇸','NZ':'🇳🇿'}[t.country] || '';
+  return `<div class="d-flex align-items-start gap-3 py-2 border-bottom">
+    <div class="flex-grow-1">
+      <strong>${flag} ${escHtml(t.name)}</strong>
+      <div class="text-muted small">${escHtml(t.description)}</div>
+      ${t.notes ? `<div class="text-warning small"><i class="bi bi-exclamation-triangle me-1"></i>${escHtml(t.notes)}</div>` : ''}
+    </div>
+    <button class="btn btn-sm btn-outline-primary flex-shrink-0" onclick="loadLibraryTemplate('${t.id}')">
+      Preview
+    </button>
+  </div>`;
+}
+
+async function loadLibraryTemplate(id) {
+  clearPreview();
+  const spinner = document.getElementById('importSpinner');
+  const msg     = document.getElementById('importSpinnerMsg');
+  spinner.style.display = '';
+  msg.textContent = 'Loading template…';
+  try {
+    const r = await fetch(`/api/schedule-library/${encodeURIComponent(id)}`);
+    const data = await r.json();
+    spinner.style.display = 'none';
+    if (!data.ok) return showToast(data.error || 'Failed to load template', 'danger');
+    _importedDays = data.days;
+    showImportPreview(data.days);
+  } catch(e) {
+    spinner.style.display = 'none';
+    showToast('Error: ' + e.message, 'danger');
+  }
 }
 
 // ---------------------------------------------------------------- image preview

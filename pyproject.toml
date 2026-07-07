@@ -35,5 +35,8 @@ radio-epg = "radio_epg.cli:cli"
 where = ["."]
 include = ["radio_epg*"]
 
+[tool.setuptools.package-data]
+radio_epg = ["data/schedules/*.yaml"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]

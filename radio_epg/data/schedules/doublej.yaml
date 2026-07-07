@@ -1,0 +1,67 @@
+_meta:
+  id: doublej
+  display_name: "Double J"
+  description: "Broad and eclectic music for the curious listener — the grown-up sibling of triple j"
+  country: AU
+  notes: "Daypart structure is consistent; specialty shows rotate. Check current lineup."
+  match:
+    - "double j"
+    - "doublej"
+    - "double-j"
+    - "2jj"
+
+channel:
+  id: doublej
+  name: "Double J"
+  timezone: "Australia/Sydney"
+
+schedule:
+  weekdays:
+    - start: "06:00"
+      title: "Double J Breakfast"
+      description: "Start the day with eclectic music across genres and eras."
+    - start: "09:00"
+      title: "Double J Mornings"
+      description: "A broad mix spanning rock, pop, electronic, world and more."
+    - start: "12:00"
+      title: "Double J Midday"
+    - start: "14:00"
+      title: "Double J Afternoons"
+    - start: "16:00"
+      title: "Double J Drive"
+      description: "Eclectic drive-time music for the journey home."
+    - start: "19:00"
+      title: "Double J Evenings"
+      description: "Evening music — often genre-focused or theme-based."
+    - start: "22:00"
+      title: "Double J Late Nights"
+      description: "Deep cuts and specialty programming late at night."
+
+  saturday:
+    - start: "06:00"
+      title: "Double J Weekends"
+    - start: "09:00"
+      title: "Saturday Mornings"
+    - start: "12:00"
+      title: "Saturday Midday"
+    - start: "14:00"
+      title: "Saturday Arvos"
+    - start: "18:00"
+      title: "Saturday Nights"
+      description: "Specialty and genre shows through Saturday evening."
+    - start: "22:00"
+      title: "Late Nights"
+
+  sunday:
+    - start: "06:00"
+      title: "Double J Weekends"
+    - start: "09:00"
+      title: "Sunday Mornings"
+    - start: "12:00"
+      title: "Sunday Midday"
+    - start: "14:00"
+      title: "Sunday Arvos"
+    - start: "18:00"
+      title: "Sunday Nights"
+    - start: "22:00"
+      title: "Late Nights"
