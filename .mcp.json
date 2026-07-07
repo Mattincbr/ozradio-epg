@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "agentopus": {
+      "type": "http",
+      "url": "https://api.opus.pro/api/agent-mcp"
+    }
+  }
+}
