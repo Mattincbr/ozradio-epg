@@ -803,6 +803,14 @@ def register_routes(app: Flask) -> None:
 def _pick_scraper(url: str):
     if "abc.net.au" in url:
         return ABCScraper()
+    _nine_radio_domains = (
+        "4bc.com.au", "2gb.com.au", "3aw.com.au",
+        "5aa.com.au", "6pr.com.au", "9radio.com.au",
+        "2ue.com.au", "4bh.com.au", "6pb.com.au",
+    )
+    if any(d in url for d in _nine_radio_domains):
+        from ..scrapers.nine_radio import NineRadioScraper
+        return NineRadioScraper()
     from ..scrapers.generic import GenericScraper
     return GenericScraper()
 
