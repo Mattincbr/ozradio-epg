@@ -1,0 +1,78 @@
+_meta:
+  id: bbc-radio5live
+  display_name: "BBC Radio 5 Live"
+  description: "BBC Radio 5 Live — live news, sport and interactive programming."
+  country: GB
+  match:
+    - "bbc radio 5"
+    - "bbc 5 live"
+    - "bbc five live"
+    - "radio 5 live"
+    - "5live"
+    - "bbc r5"
+    - "radio5live"
+
+channel:
+  id: bbc-radio5live
+  name: "BBC Radio 5 Live"
+  timezone: "Europe/London"
+  website: "https://www.bbc.co.uk/5live"
+
+schedule:
+  weekdays:
+    - start: "00:00"
+      title: "Up All Night"
+      description: "Overnight news, sport and live events."
+      url: "https://www.bbc.co.uk/programmes/b006wnkl"
+    - start: "05:00"
+      title: "5 Live Breakfast"
+      description: "Morning news, sport and interviews with Nicky Campbell and Rachel Burden."
+      url: "https://www.bbc.co.uk/programmes/b006wmkp"
+    - start: "09:00"
+      title: "Morning"
+      description: "Emma Barnett / Live news and sport through the morning."
+    - start: "12:00"
+      title: "5 Live Daily"
+      description: "News, debate and phone-in through the afternoon."
+      url: "https://www.bbc.co.uk/programmes/b0c9y7h9"
+    - start: "17:00"
+      title: "5 Live Drive"
+      description: "Sport, news and debate for the commute home."
+    - start: "19:00"
+      title: "Evening"
+      description: "Sport and news programming through the evening."
+    - start: "22:00"
+      title: "5 Live Sport"
+      description: "Live sport commentary and post-match analysis."
+
+  saturday:
+    - start: "00:00"
+      title: "Up All Night"
+    - start: "07:00"
+      title: "Saturday Breakfast"
+    - start: "09:00"
+      title: "Saturday Morning"
+    - start: "11:30"
+      title: "Football"
+      description: "Live Premier League and EFL football commentary."
+    - start: "19:00"
+      title: "Saturday Evening Sport"
+    - start: "22:00"
+      title: "606"
+      description: "Football phone-in with Robbie Savage and others."
+      url: "https://www.bbc.co.uk/programmes/b006ml0g"
+
+  sunday:
+    - start: "00:00"
+      title: "Up All Night"
+    - start: "07:00"
+      title: "Sunday Breakfast"
+    - start: "09:00"
+      title: "Sunday Morning"
+    - start: "12:00"
+      title: "Sunday Sport"
+      description: "Live sport commentary from around the UK."
+    - start: "17:00"
+      title: "Sunday Afternoon"
+    - start: "22:00"
+      title: "Sunday Night"

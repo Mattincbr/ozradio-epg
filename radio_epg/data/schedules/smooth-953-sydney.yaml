@@ -1,0 +1,67 @@
+_meta:
+  id: smooth-953-sydney
+  display_name: "Smooth FM 95.3 Sydney"
+  description: "Smooth FM 95.3 — Sydney's relaxing mix of classic hits and easy listening."
+  country: AU
+  match:
+    - "smooth 95.3"
+    - "smooth fm sydney"
+    - "smooth953"
+    - "95.3 smooth"
+    - "smoothfm sydney"
+
+channel:
+  id: smooth-953-sydney
+  name: "Smooth FM 95.3"
+  timezone: "Australia/Sydney"
+  website: "https://smoothfm.com.au"
+
+schedule:
+  weekdays:
+    - start: "00:00"
+      title: "Smooth Overnight"
+      description: "Relaxing music through the night."
+    - start: "06:00"
+      title: "Smooth Breakfast"
+      description: "Start your day the smooth way — relaxing hits to ease you into the morning."
+      url: "https://smoothfm.com.au/shows/smooth-breakfast"
+    - start: "09:00"
+      title: "Smooth Mid-Morning"
+      description: "Easy listening hits to carry you through the morning."
+    - start: "12:00"
+      title: "Smooth Lunch"
+    - start: "15:00"
+      title: "Smooth Drive"
+      description: "Relaxing music for the drive home."
+    - start: "19:00"
+      title: "Smooth Evenings"
+    - start: "22:00"
+      title: "Smooth Late"
+
+  saturday:
+    - start: "00:00"
+      title: "Smooth Overnight"
+    - start: "06:00"
+      title: "Smooth Saturday Morning"
+    - start: "10:00"
+      title: "Smooth Weekend"
+    - start: "15:00"
+      title: "Smooth Saturday Afternoon"
+    - start: "19:00"
+      title: "Smooth Saturday Night"
+    - start: "22:00"
+      title: "Smooth Late"
+
+  sunday:
+    - start: "00:00"
+      title: "Smooth Overnight"
+    - start: "06:00"
+      title: "Smooth Sunday Morning"
+    - start: "10:00"
+      title: "Smooth Weekend"
+    - start: "15:00"
+      title: "Smooth Sunday Afternoon"
+    - start: "19:00"
+      title: "Smooth Sunday Night"
+    - start: "22:00"
+      title: "Smooth Late"

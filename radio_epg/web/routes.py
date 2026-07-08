@@ -322,6 +322,7 @@ def register_routes(app: Flask) -> None:
                     "description": s.description,
                     "duration": s.duration,
                     "image": s.image,
+                    "url": s.url,
                 }.items() if v}
                 for s in day_sched.slots
             ]

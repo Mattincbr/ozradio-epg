@@ -1,0 +1,64 @@
+_meta:
+  id: kiis-1065-sydney
+  display_name: "KIIS 106.5 Sydney"
+  description: "KIIS 106.5 — Sydney's hit music station from ARN (Australian Radio Network)."
+  country: AU
+  match:
+    - "kiis 106.5"
+    - "kiis sydney"
+    - "kiis1065"
+    - "106.5 sydney"
+    - "kiis fm sydney"
+
+channel:
+  id: kiis-1065-sydney
+  name: "KIIS 106.5"
+  timezone: "Australia/Sydney"
+  website: "https://www.kiis.com.au"
+
+schedule:
+  weekdays:
+    - start: "00:00"
+      title: "KIIS Overnight"
+    - start: "06:00"
+      title: "Kyle & Jackie O"
+      description: "Sydney's #1 Breakfast Show — Kyle Sandilands and Jackie O with celebrity interviews and top hits."
+      url: "https://www.kiis.com.au/shows/kyle-jackie-o"
+    - start: "09:00"
+      title: "Afternoon with Will & Woody"
+      description: "Comedy and hit music through the morning into afternoon."
+    - start: "16:00"
+      title: "Drive with Jase & Lauren"
+      description: "Afternoon drive with the latest hits."
+    - start: "19:00"
+      title: "KIIS Evenings"
+    - start: "22:00"
+      title: "KIIS Late"
+
+  saturday:
+    - start: "00:00"
+      title: "KIIS Overnight"
+    - start: "06:00"
+      title: "Saturday Morning"
+    - start: "10:00"
+      title: "KIIS Weekend"
+    - start: "16:00"
+      title: "Saturday Afternoon"
+    - start: "19:00"
+      title: "Saturday Night"
+    - start: "22:00"
+      title: "KIIS Late"
+
+  sunday:
+    - start: "00:00"
+      title: "KIIS Overnight"
+    - start: "06:00"
+      title: "Sunday Morning"
+    - start: "10:00"
+      title: "KIIS Weekend"
+    - start: "16:00"
+      title: "Sunday Afternoon"
+    - start: "19:00"
+      title: "Sunday Night"
+    - start: "22:00"
+      title: "KIIS Late"

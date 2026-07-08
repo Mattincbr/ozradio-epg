@@ -1,0 +1,59 @@
+_meta:
+  id: abc-country
+  display_name: "ABC Country"
+  description: "Country music and rural stories from around Australia."
+  country: AU
+  match:
+    - "abc country"
+    - "abccountry"
+    - "country radio abc"
+
+channel:
+  id: abc-country
+  name: "ABC Country"
+  timezone: "Australia/Sydney"
+  website: "https://www.abc.net.au/listen/abc-country"
+
+schedule:
+  weekdays:
+    - start: "00:00"
+      title: "Country Overnight"
+      description: "Country music through the night."
+    - start: "05:00"
+      title: "Country Mornings"
+      description: "Classic and contemporary country to start your day."
+    - start: "09:00"
+      title: "Mid-Morning Country"
+    - start: "12:00"
+      title: "Lunchtime Country"
+    - start: "14:00"
+      title: "Afternoon Country"
+    - start: "18:00"
+      title: "Country Drive"
+      description: "The best of country music for the drive home."
+    - start: "22:00"
+      title: "Late Night Country"
+
+  saturday:
+    - start: "00:00"
+      title: "Country Overnight"
+    - start: "06:00"
+      title: "Weekend Country Mornings"
+    - start: "10:00"
+      title: "Country Weekend"
+    - start: "18:00"
+      title: "Saturday Country Evening"
+    - start: "22:00"
+      title: "Late Night Country"
+
+  sunday:
+    - start: "00:00"
+      title: "Country Overnight"
+    - start: "06:00"
+      title: "Weekend Country Mornings"
+    - start: "10:00"
+      title: "Country Weekend"
+    - start: "18:00"
+      title: "Sunday Country Evening"
+    - start: "22:00"
+      title: "Late Night Country"

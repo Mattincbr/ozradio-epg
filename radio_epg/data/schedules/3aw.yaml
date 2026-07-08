@@ -1,0 +1,73 @@
+_meta:
+  id: 3aw
+  display_name: "3AW Melbourne"
+  description: "3AW — Melbourne's #1 radio station, talk, sport and community."
+  country: AU
+  notes: "Verify current schedule at https://www.3aw.com.au/shows/ as presenter lineups change."
+  match:
+    - "3aw"
+    - "3aw melbourne"
+    - "3aw talk"
+    - "nine radio melbourne"
+
+channel:
+  id: 3aw
+  name: "3AW"
+  timezone: "Australia/Melbourne"
+  website: "https://www.3aw.com.au"
+
+schedule:
+  weekdays:
+    - start: "00:00"
+      title: "3AW Overnight"
+    - start: "05:30"
+      title: "3AW Early"
+    - start: "06:00"
+      title: "Rumble with Ross and Russel"
+      description: "3AW Breakfast — Melbourne's favourite morning show with Ross Stevenson and John Burns."
+      url: "https://www.3aw.com.au/shows/breakfast"
+    - start: "09:00"
+      title: "Tom Elliott"
+      description: "Mornings with Tom Elliott — talkback and debate."
+      url: "https://www.3aw.com.au/shows/mornings"
+    - start: "12:00"
+      title: "Neil Mitchell"
+      description: "Neil Mitchell's Afternoons — a Melbourne institution."
+      url: "https://www.3aw.com.au/shows/afternoons"
+    - start: "16:00"
+      title: "Drive with Tony Leonard"
+      description: "Drive home with sport, news and Melbourne community."
+      url: "https://www.3aw.com.au/shows/drive"
+    - start: "19:00"
+      title: "3AW Evenings"
+    - start: "22:00"
+      title: "3AW Late"
+
+  saturday:
+    - start: "00:00"
+      title: "3AW Overnight"
+    - start: "06:00"
+      title: "Saturday Breakfast"
+    - start: "09:00"
+      title: "Saturday Morning"
+    - start: "12:00"
+      title: "3AW Sport Saturday"
+      description: "Live AFL, cricket and sport coverage."
+    - start: "18:00"
+      title: "Saturday Evening"
+    - start: "22:00"
+      title: "3AW Late"
+
+  sunday:
+    - start: "00:00"
+      title: "3AW Overnight"
+    - start: "06:00"
+      title: "Sunday Breakfast"
+    - start: "09:00"
+      title: "Sunday Morning"
+    - start: "12:00"
+      title: "3AW Sport Sunday"
+    - start: "18:00"
+      title: "Sunday Evening"
+    - start: "22:00"
+      title: "3AW Late"

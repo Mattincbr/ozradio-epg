@@ -267,6 +267,7 @@ function addTab(day, slots, active) {
           <th>Title</th>
           <th style="width:180px">Presenter</th>
           <th>Description</th>
+          <th style="width:160px">Library URL</th>
           <th style="width:90px">Duration<br><small class="text-muted fw-normal">mins</small></th>
           <th style="width:40px"></th>
         </tr></thead>
@@ -304,6 +305,7 @@ function addSlotRow(day, slot) {
             class="rounded" style="width:28px;height:28px;object-fit:cover;cursor:pointer"
             onclick="window.open('${escHtml(slot.image)}','_blank')">`
     : '';
+  const urlVal = slot.url || '';
   tr.innerHTML = `
     <input type="hidden" data-field="image" value="${escHtml(slot.image||'')}">
     <td><input type="time"   class="form-control form-control-sm" data-field="start"
@@ -319,6 +321,15 @@ function addSlotRow(day, slot) {
                value="${escHtml(slot.presenter||'')}" placeholder="Presenter name"></td>
     <td><input type="text"   class="form-control form-control-sm" data-field="description"
                value="${escHtml(slot.description||'')}" placeholder="Short description"></td>
+    <td>
+      <div class="d-flex align-items-center gap-1">
+        <input type="url" class="form-control form-control-sm" data-field="url"
+               value="${escHtml(urlVal)}" placeholder="https://…"
+               title="Episode library / catch-up URL">
+        ${urlVal ? `<a href="${escHtml(urlVal)}" target="_blank" rel="noopener"
+            class="text-muted flex-shrink-0" title="Open library"><i class="bi bi-box-arrow-up-right"></i></a>` : ''}
+      </div>
+    </td>
     <td><input type="number" class="form-control form-control-sm" data-field="duration"
                value="${dur}" min="1" placeholder="auto"></td>
     <td><button type="button" class="btn btn-xs btn-outline-danger"
@@ -342,10 +353,12 @@ function collectSchedule() {
       const description = get('description');
       const durStr      = get('duration');
       const image       = get('image');
+      const url         = get('url');
       if (presenter)   slot.presenter   = presenter;
       if (description) slot.description = description;
       if (durStr)      slot.duration    = parseInt(durStr, 10);
       if (image)       slot.image       = image;
+      if (url)         slot.url         = url;
       slots.push(slot);
     });
     slots.sort((a,b) => a.start.localeCompare(b.start));

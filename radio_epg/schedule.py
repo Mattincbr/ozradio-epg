@@ -46,6 +46,7 @@ def _parse_schedule_dict(data: dict) -> WeeklySchedule:
                 presenter=s.get("presenter", ""),
                 duration=s.get("duration"),
                 image=s.get("image"),
+                url=s.get("url"),
             ))
         schedule.days[day_key] = DaySchedule(slots=slots)
 
@@ -112,6 +113,7 @@ def _expand_day(
             description=slot.description,
             presenter=slot.presenter,
             image=slot.image,
+            url=slot.url,
         )
 
 

@@ -1,0 +1,74 @@
+_meta:
+  id: abc-local-brisbane
+  display_name: "ABC Radio Brisbane (612)"
+  description: "ABC Local Radio for Brisbane and South-East Queensland."
+  country: AU
+  match:
+    - "abc brisbane"
+    - "abc 612"
+    - "612 abc"
+    - "612abc"
+    - "abc local brisbane"
+    - "abc radio brisbane"
+    - "abc queensland"
+
+channel:
+  id: abc-local-brisbane
+  name: "ABC Radio Brisbane"
+  timezone: "Australia/Brisbane"
+  website: "https://www.abc.net.au/brisbane"
+
+schedule:
+  weekdays:
+    - start: "00:00"
+      title: "Overnight"
+    - start: "05:30"
+      title: "AM"
+    - start: "06:00"
+      title: "Breakfast"
+      description: "Brisbane's morning news, weather and conversation."
+    - start: "09:00"
+      title: "Mornings"
+      description: "Talkback, local stories and community conversation."
+    - start: "12:00"
+      title: "The World Today"
+    - start: "12:30"
+      title: "Afternoons"
+    - start: "15:00"
+      title: "Drive"
+      description: "South-East Queensland news and sport for the afternoon drive."
+    - start: "18:00"
+      title: "PM"
+    - start: "18:30"
+      title: "Evening"
+    - start: "22:00"
+      title: "Nightlife"
+
+  saturday:
+    - start: "00:00"
+      title: "Overnight"
+    - start: "06:00"
+      title: "Saturday Breakfast"
+    - start: "09:00"
+      title: "Weekend Mornings"
+    - start: "12:00"
+      title: "Grandstand"
+      description: "Live sport coverage including NRL and cricket."
+    - start: "18:00"
+      title: "Saturday Evening"
+    - start: "22:00"
+      title: "Nightlife"
+
+  sunday:
+    - start: "00:00"
+      title: "Overnight"
+    - start: "06:00"
+      title: "Sunday Breakfast"
+    - start: "09:00"
+      title: "Sunday Mornings"
+    - start: "12:00"
+      title: "Grandstand"
+    - start: "18:00"
+      title: "Sunday Evening"
+    - start: "22:00"
+      title: "Nightlife"

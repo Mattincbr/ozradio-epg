@@ -1,0 +1,72 @@
+_meta:
+  id: nova-1069
+  display_name: "Nova 106.9 Brisbane"
+  description: "Nova 106.9 — Brisbane's hit music station, contemporary hits and entertainment."
+  country: AU
+  match:
+    - "nova 106.9"
+    - "nova 1069"
+    - "nova106"
+    - "nova1069"
+    - "nova brisbane"
+    - "106.9 brisbane"
+
+channel:
+  id: nova-1069
+  name: "Nova 106.9"
+  timezone: "Australia/Brisbane"
+  website: "https://novafm.com.au/station/nova1069"
+
+schedule:
+  weekdays:
+    - start: "00:00"
+      title: "Nova Overnight"
+      description: "Hit music through the night."
+    - start: "06:00"
+      title: "Smallzy's Surgery"
+      description: "The Nova Breakfast Show — celebrity chat, games and Brisbane's biggest hits."
+      url: "https://novafm.com.au/station/nova1069/shows/smallzys-surgery"
+    - start: "09:00"
+      title: "Wippa with Becko"
+      description: "Morning hits and entertainment."
+    - start: "12:00"
+      title: "Nova's Lunchtime"
+      description: "Midday hits countdown."
+    - start: "16:00"
+      title: "Nova Drive"
+      description: "Hit music home with MG, Jess & Lakey."
+      url: "https://novafm.com.au/station/nova1069/shows/nova-drive"
+    - start: "19:00"
+      title: "Nova Evenings"
+      description: "Hit music through the evening."
+    - start: "22:00"
+      title: "Nova Late"
+
+  saturday:
+    - start: "00:00"
+      title: "Nova Overnight"
+    - start: "06:00"
+      title: "Saturday Morning"
+    - start: "10:00"
+      title: "Smallzy's Weekend"
+    - start: "16:00"
+      title: "Saturday Afternoon"
+    - start: "19:00"
+      title: "Nova Saturday Night"
+    - start: "22:00"
+      title: "Nova Late"
+
+  sunday:
+    - start: "00:00"
+      title: "Nova Overnight"
+    - start: "06:00"
+      title: "Sunday Morning"
+    - start: "10:00"
+      title: "Nova's All Time Top 40"
+      description: "The greatest hits of all time, as voted by listeners."
+    - start: "14:00"
+      title: "Sunday Afternoon"
+    - start: "19:00"
+      title: "Nova Sunday Night"
+    - start: "22:00"
+      title: "Nova Late"
