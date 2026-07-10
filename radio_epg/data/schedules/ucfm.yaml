@@ -1,0 +1,78 @@
+_meta:
+  id: ucfm
+  display_name: "UCfm Community Radio"
+  description: "UCfm — Australian community radio station."
+  country: AU
+  notes: |
+    PLEASE VERIFY: There are multiple Australian stations that use the UCfm name or call sign.
+    Common candidates:
+      - 100.3 UCfm (Upper Coomera / Gold Coast, QLD)
+      - University of Canberra community broadcasting
+    Update the channel.id, channel.name, channel.timezone and channel.website fields
+    to match your specific station, and scrape or paste the correct schedule.
+  match:
+    - "ucfm"
+    - "uc fm"
+    - "ucfm community"
+    - "upper coomera fm"
+    - "100.3 ucfm"
+
+channel:
+  id: ucfm
+  name: "UCfm"
+  timezone: "Australia/Brisbane"
+  website: "https://www.ucfm.com.au"
+
+schedule:
+  weekdays:
+    - start: "00:00"
+      title: "Overnight"
+      description: "Automated overnight music and programming."
+    - start: "06:00"
+      title: "Breakfast"
+      description: "Morning community programming and local news."
+    - start: "09:00"
+      title: "Morning Shows"
+      description: "Morning community and specialist music programming."
+    - start: "12:00"
+      title: "Midday"
+      description: "Lunchtime community programming."
+    - start: "14:00"
+      title: "Afternoon Shows"
+      description: "Afternoon community and music programs."
+    - start: "17:00"
+      title: "Drive"
+      description: "Afternoon drive community programming."
+    - start: "19:00"
+      title: "Evening Shows"
+      description: "Evening specialty and community programs."
+    - start: "22:00"
+      title: "Late Night"
+
+  saturday:
+    - start: "00:00"
+      title: "Overnight"
+    - start: "07:00"
+      title: "Saturday Morning"
+    - start: "10:00"
+      title: "Saturday Shows"
+    - start: "14:00"
+      title: "Saturday Afternoon"
+    - start: "19:00"
+      title: "Saturday Evening"
+    - start: "22:00"
+      title: "Saturday Late"
+
+  sunday:
+    - start: "00:00"
+      title: "Overnight"
+    - start: "07:00"
+      title: "Sunday Morning"
+    - start: "10:00"
+      title: "Sunday Shows"
+    - start: "14:00"
+      title: "Sunday Afternoon"
+    - start: "19:00"
+      title: "Sunday Evening"
+    - start: "22:00"
+      title: "Sunday Late"

@@ -1,0 +1,101 @@
+_meta:
+  id: rph
+  display_name: "RPH Australia (Radio for the Print Handicapped)"
+  description: "RPH Australia — 24/7 reading service broadcasting newspapers, books and magazines to vision-impaired and print-handicapped listeners."
+  country: AU
+  notes: |
+    RPH operates on AM, DAB+ and online streaming. City frequencies:
+      Sydney: 1224 AM | Melbourne: 1179 AM | Brisbane: 1296 AM
+      Adelaide: 1197 AM | Perth: 1044 AM | Canberra: 1188 AM
+    The national stream is available at https://www.rph.org.au
+    Programming varies by city — local newspaper readings differ but
+    national book and magazine content is shared across stations.
+  match:
+    - "rph"
+    - "rph australia"
+    - "radio print handicapped"
+    - "radio for the print handicapped"
+    - "reading radio"
+    - "1224 am"
+    - "1179 am rph"
+    - "1296 am rph"
+    - "1197 am rph"
+    - "1044 am rph"
+
+channel:
+  id: rph
+  name: "RPH Australia"
+  timezone: "Australia/Sydney"
+  website: "https://www.rph.org.au"
+
+schedule:
+  weekdays:
+    - start: "00:00"
+      title: "Overnight Reading"
+      description: "Books and literary readings through the night."
+    - start: "06:00"
+      title: "Morning Newspapers"
+      description: "Live readings of the morning's major newspapers — national and local editions."
+      url: "https://www.rph.org.au/programs"
+    - start: "09:00"
+      title: "Mid-Morning Reading"
+      description: "Magazine readings, feature articles and human interest stories."
+    - start: "11:00"
+      title: "Book Reading"
+      description: "Serialised book readings — fiction and non-fiction."
+      url: "https://www.rph.org.au/programs"
+    - start: "12:00"
+      title: "Lunchtime Newspapers"
+      description: "Lunchtime newspaper and news magazine readings."
+    - start: "13:00"
+      title: "Afternoon Reading"
+      description: "Afternoon books, magazines and feature articles."
+    - start: "15:00"
+      title: "Afternoon Newspapers"
+      description: "Afternoon edition newspaper readings and sports results."
+    - start: "17:00"
+      title: "Evening Newspapers"
+      description: "Evening newspaper and current affairs readings."
+    - start: "19:00"
+      title: "Evening Book Reading"
+      description: "Evening serialised fiction and non-fiction book readings."
+    - start: "21:00"
+      title: "Late Evening Reading"
+      description: "Relaxing readings and audio magazines."
+    - start: "23:00"
+      title: "Night Reading"
+      description: "Books and literary content through the late evening."
+
+  saturday:
+    - start: "00:00"
+      title: "Overnight Reading"
+    - start: "06:00"
+      title: "Saturday Morning Papers"
+      description: "Weekend newspaper readings — Saturday editions."
+    - start: "09:00"
+      title: "Weekend Magazine Reading"
+      description: "Weekend magazines and feature supplements."
+    - start: "12:00"
+      title: "Saturday Afternoon Reading"
+      description: "Book readings and long-form magazine content."
+    - start: "17:00"
+      title: "Saturday Evening Reading"
+    - start: "21:00"
+      title: "Saturday Night Reading"
+
+  sunday:
+    - start: "00:00"
+      title: "Overnight Reading"
+    - start: "06:00"
+      title: "Sunday Morning Papers"
+      description: "Sunday newspaper readings — including Sunday magazine supplements."
+    - start: "09:00"
+      title: "Sunday Magazine Reading"
+      description: "Sunday supplement and feature magazine readings."
+    - start: "12:00"
+      title: "Sunday Afternoon Reading"
+      description: "Book readings and long-form content."
+    - start: "17:00"
+      title: "Sunday Evening Reading"
+    - start: "21:00"
+      title: "Sunday Night Reading"
