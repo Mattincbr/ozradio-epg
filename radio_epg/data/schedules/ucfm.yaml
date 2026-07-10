@@ -1,73 +1,73 @@
 _meta:
   id: ucfm
-  display_name: "UCfm Community Radio"
-  description: "UCfm — Australian community radio station."
+  display_name: "UC FM (University of Canberra)"
+  description: "UC FM — University of Canberra's community radio station, student-run with music, arts and community programming."
   country: AU
-  notes: |
-    PLEASE VERIFY: There are multiple Australian stations that use the UCfm name or call sign.
-    Common candidates:
-      - 100.3 UCfm (Upper Coomera / Gold Coast, QLD)
-      - University of Canberra community broadcasting
-    Update the channel.id, channel.name, channel.timezone and channel.website fields
-    to match your specific station, and scrape or paste the correct schedule.
+  notes: "UC FM is the University of Canberra's campus and community radio. Verify current frequency/stream and schedule at https://www.ucfm.com.au — volunteer-run grids shift regularly."
   match:
     - "ucfm"
     - "uc fm"
-    - "ucfm community"
-    - "upper coomera fm"
-    - "100.3 ucfm"
+    - "university of canberra fm"
+    - "university canberra radio"
+    - "uc radio"
+    - "ucfm canberra"
 
 channel:
   id: ucfm
-  name: "UCfm"
-  timezone: "Australia/Brisbane"
+  name: "UC FM"
+  timezone: "Australia/Sydney"
   website: "https://www.ucfm.com.au"
 
 schedule:
   weekdays:
     - start: "00:00"
-      title: "Overnight"
-      description: "Automated overnight music and programming."
+      title: "UC FM Overnight"
+      description: "Automated overnight music."
     - start: "06:00"
-      title: "Breakfast"
-      description: "Morning community programming and local news."
+      title: "Morning Show"
+      description: "Student-run morning programming — local news, music and community chat."
+      url: "https://www.ucfm.com.au/shows"
     - start: "09:00"
-      title: "Morning Shows"
-      description: "Morning community and specialist music programming."
+      title: "Mid-Morning"
+      description: "Specialist music and student programming."
+      url: "https://www.ucfm.com.au/shows"
     - start: "12:00"
-      title: "Midday"
-      description: "Lunchtime community programming."
+      title: "Lunchtime"
+      description: "Campus lunchtime programming and community music."
     - start: "14:00"
       title: "Afternoon Shows"
-      description: "Afternoon community and music programs."
+      description: "Afternoon genre music and student content."
     - start: "17:00"
       title: "Drive"
-      description: "Afternoon drive community programming."
+      description: "Afternoon community drive programming."
     - start: "19:00"
       title: "Evening Shows"
-      description: "Evening specialty and community programs."
+      description: "Evening specialist music, interviews and community programs."
     - start: "22:00"
       title: "Late Night"
+      description: "Late night alternative and experimental music."
 
   saturday:
     - start: "00:00"
-      title: "Overnight"
+      title: "UC FM Overnight"
     - start: "07:00"
       title: "Saturday Morning"
     - start: "10:00"
       title: "Saturday Shows"
+      description: "Weekend community and specialist music programming."
     - start: "14:00"
       title: "Saturday Afternoon"
     - start: "19:00"
       title: "Saturday Evening"
     - start: "22:00"
-      title: "Saturday Late"
+      title: "Saturday Late Night"
 
   sunday:
     - start: "00:00"
-      title: "Overnight"
+      title: "UC FM Overnight"
     - start: "07:00"
       title: "Sunday Morning"
+      description: "Sunday community and multicultural programming."
     - start: "10:00"
       title: "Sunday Shows"
     - start: "14:00"
@@ -75,4 +75,4 @@ schedule:
     - start: "19:00"
       title: "Sunday Evening"
     - start: "22:00"
-      title: "Sunday Late"
+      title: "Sunday Late Night"
