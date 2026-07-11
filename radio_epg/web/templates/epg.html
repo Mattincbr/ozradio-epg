@@ -2,20 +2,22 @@
 {% block title %}Generate EPG{% endblock %}
 {% block content %}
 <div class="page-header">
-  <h1><i class="bi bi-file-earmark-code me-2"></i>Generate EPG</h1>
+  <div>
+    <div class="page-eyebrow">Output</div>
+    <h1><i class="bi bi-file-earmark-code me-2"></i>Generate EPG</h1>
+  </div>
 </div>
 
 <div class="row justify-content-center">
   <div class="col-lg-7">
     <div class="card">
-      <div class="card-header">XMLTV EPG Options</div>
+      <div class="card-header"><i class="bi bi-sliders me-1"></i>XMLTV EPG Options</div>
       <div class="card-body">
         <form action="{{ url_for('epg_generate') }}" method="post">
           <div class="row g-3">
             <div class="col-md-6">
               <label class="form-label">Start Date</label>
-              <input type="date" name="start_date" class="form-control"
-                     value="{{ today }}">
+              <input type="date" name="start_date" class="form-control" value="{{ today }}">
             </div>
             <div class="col-md-6">
               <label class="form-label">Days to Generate</label>
@@ -37,7 +39,8 @@
             </div>
             <div class="col-12">
               <label class="form-label">Channels to Include</label>
-              <div class="border rounded p-2" style="max-height:300px;overflow-y:auto">
+              <div class="border rounded p-2"
+                   style="max-height:300px;overflow-y:auto;border-color:var(--border-default) !important">
                 <div class="mb-2">
                   <button type="button" class="btn btn-xs btn-outline-secondary me-1"
                           onclick="setAll(true)">Select all</button>
@@ -50,8 +53,7 @@
                     <input type="checkbox" name="channel_ids" value="{{ ch.tvg_id }}"
                            class="form-check-input ch-check" id="epg-{{ loop.index }}" checked>
                     <label class="form-check-label" for="epg-{{ loop.index }}">
-                      {{ ch.name }}
-                      <small class="text-muted">{{ ch.tvg_id }}</small>
+                      {{ ch.name }} <small class="text-muted">{{ ch.tvg_id }}</small>
                     </label>
                   </div>
                   {% endfor %}
@@ -72,32 +74,30 @@
               </div>
             </div>
           </div>
-          <div class="mt-4 d-flex gap-2">
+
+          <div class="mt-4 d-flex gap-2 align-items-center flex-wrap">
             <button type="submit" class="btn btn-primary"
                     {% if not scheduled_channels %}disabled{% endif %}>
-              <i class="bi bi-download me-1"></i>Generate & Download epg.xml
+              <i class="bi bi-download me-1"></i>Generate &amp; Download epg.xml
             </button>
             {% if not scheduled_channels %}
-              <span class="text-muted small align-self-center">
-                Add at least one schedule first.
-              </span>
+              <span class="text-muted small">Add at least one schedule first.</span>
             {% endif %}
           </div>
         </form>
       </div>
     </div>
 
-    <!-- Info card -->
     <div class="card mt-3">
       <div class="card-body">
-        <h6><i class="bi bi-info-circle me-2 text-primary"></i>How to use the EPG</h6>
+        <h6><i class="bi bi-info-circle me-2" style="color:var(--color-coral)"></i>How to use the EPG</h6>
         <ol class="text-muted small mb-0">
           <li>Download <code>epg.xml</code> and host it on a web server (or serve locally).</li>
-          <li>In your M3U8 file, add <code class="text-nowrap">x-tvg-url="http://yourserver/epg.xml"</code>
-              to the <code>#EXTM3U</code> line.</li>
+          <li>Add <code class="text-nowrap">x-tvg-url="&hellip;/epg.xml"</code> to the <code>#EXTM3U</code>
+              line of your playlist.</li>
           <li>Ensure each channel's <code>tvg-id</code> matches the channel <code>id</code> in the XML.</li>
-          <li>Regenerate periodically (weekly) — the
-              <a href="{{ url_for('overrides') }}">overrides</a> will be baked in automatically.</li>
+          <li>Regenerate periodically (weekly) &mdash; the
+              <a href="{{ url_for('overrides') }}">overrides</a> are baked in automatically.</li>
         </ol>
       </div>
     </div>
@@ -107,10 +107,6 @@
 
 {% block scripts %}
 <script>
-// Set today's date as default
-document.querySelector('[name="start_date"]').value =
-  new Date().toISOString().split('T')[0];
-
 function setAll(checked) {
   document.querySelectorAll('.ch-check').forEach(cb => cb.checked = checked);
 }

@@ -1,0 +1,380 @@
+{% extends "base.html" %}
+{% block title %}Poster Studio{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-eyebrow">Now Playing</div>
+    <h1><i class="bi bi-easel me-2"></i>Poster Studio</h1>
+  </div>
+</div>
+
+<p class="text-muted" style="max-width:640px;margin:-0.75rem 0 1.5rem;font-size:.92rem">
+  Radio is audio, but the players want a picture. Design the still that loops as the video track —
+  it swaps at each slot boundary, so the guide always shows what&rsquo;s on.
+  Daytime runs light; the evening leg runs dark. Bring a jumper.
+</p>
+
+<div class="ps-grid">
+  <!-- Controls -->
+  <div class="ps-controls">
+    {% if channels %}
+    <div>
+      <span class="ps-label">Channel</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem">
+        {% for ch in channels %}
+        <button class="ch-pick {% if loop.first %}active{% endif %}"
+                onclick="pickChannel(this, '{{ ch.name|e }}')"
+                data-name="{{ ch.name|e }}">
+          {{ ch.name }}
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    <div class="text-muted small">No channels configured.</div>
+    {% endif %}
+
+    <div>
+      <span class="ps-label">Default template &middot; this channel</span>
+      <div class="tpl-list">
+        <!-- Plate -->
+        <div class="tpl-opt active" onclick="pickTemplate('plate', this)">
+          <div class="tpl-thumb">
+            <div style="position:absolute;inset:15%;border:1.5px solid var(--color-navy)"></div>
+          </div>
+          <div class="tpl-name">Plate</div>
+        </div>
+        <!-- Band -->
+        <div class="tpl-opt" onclick="pickTemplate('band', this)">
+          <div class="tpl-thumb">
+            <div style="position:absolute;left:0;right:0;bottom:0;height:36%;background:var(--color-navy)"></div>
+          </div>
+          <div class="tpl-name">Band</div>
+        </div>
+        <!-- Split -->
+        <div class="tpl-opt" onclick="pickTemplate('split', this)">
+          <div class="tpl-thumb">
+            <div style="position:absolute;left:0;top:0;bottom:0;width:36%;background:var(--color-coral)"></div>
+          </div>
+          <div class="tpl-name">Split</div>
+        </div>
+        <!-- Minimal -->
+        <div class="tpl-opt" onclick="pickTemplate('minimal', this)">
+          <div class="tpl-thumb">
+            <div style="position:absolute;left:12%;top:16%;width:16%;height:16%;border-radius:3px;background:var(--color-coral)"></div>
+            <div style="position:absolute;left:12%;bottom:22%;width:56%;height:9%;background:var(--color-navy)"></div>
+          </div>
+          <div class="tpl-name">Minimal</div>
+        </div>
+        <!-- Masthead -->
+        <div class="tpl-opt" onclick="pickTemplate('masthead', this)">
+          <div class="tpl-thumb">
+            <div style="position:absolute;left:12%;right:12%;top:20%;height:1.5px;background:var(--color-navy)"></div>
+            <div style="position:absolute;left:12%;top:40%;width:60%;height:14%;background:var(--color-navy)"></div>
+            <div style="position:absolute;left:12%;right:12%;bottom:22%;height:1.5px;background:var(--color-navy)"></div>
+          </div>
+          <div class="tpl-name">Masthead</div>
+        </div>
+        <!-- Broadsheet -->
+        <div class="tpl-opt" onclick="pickTemplate('broadsheet', this)">
+          <div class="tpl-thumb">
+            <div style="position:absolute;left:14%;right:14%;top:18%;height:2px;background:var(--color-navy)"></div>
+            <div style="position:absolute;left:28%;right:28%;top:42%;height:12%;background:var(--color-navy)"></div>
+            <div style="position:absolute;left:36%;right:36%;bottom:24%;height:5%;background:var(--color-coral)"></div>
+          </div>
+          <div class="tpl-name">Broadsheet</div>
+        </div>
+        <!-- Feature -->
+        <div class="tpl-opt" onclick="pickTemplate('feature', this)">
+          <div class="tpl-thumb">
+            <div style="position:absolute;left:0;top:0;bottom:0;width:44%;border-right:1.5px solid var(--color-navy)"></div>
+            <div style="position:absolute;left:10%;top:38%;width:24%;height:24%;background:var(--color-navy)"></div>
+            <div style="position:absolute;left:52%;top:40%;width:36%;height:10%;background:var(--color-coral)"></div>
+          </div>
+          <div class="tpl-name">Feature</div>
+        </div>
+        <!-- Marquee -->
+        <div class="tpl-opt" onclick="pickTemplate('marquee', this)">
+          <div class="tpl-thumb">
+            <div style="position:absolute;left:10%;right:10%;top:14%;bottom:14%;border:1.5px solid var(--color-navy)"></div>
+            <div style="position:absolute;left:24%;right:24%;top:44%;height:12%;background:var(--color-navy)"></div>
+          </div>
+          <div class="tpl-name">Marquee</div>
+        </div>
+        <!-- Ledger -->
+        <div class="tpl-opt" onclick="pickTemplate('ledger', this)">
+          <div class="tpl-thumb">
+            <div style="position:absolute;left:12%;right:12%;top:20%;height:8%;background:var(--color-coral)"></div>
+            <div style="position:absolute;left:12%;right:12%;top:36%;height:6%;background:var(--color-navy);opacity:.35"></div>
+            <div style="position:absolute;left:12%;right:12%;top:50%;height:6%;background:var(--color-navy);opacity:.35"></div>
+            <div style="position:absolute;left:12%;right:12%;top:64%;height:6%;background:var(--color-navy);opacity:.35"></div>
+          </div>
+          <div class="tpl-name">Ledger</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <span class="ps-label">Daypart colourway</span>
+      <div class="seg" id="daypart-seg">
+        <button class="active" onclick="pickDaypart('auto', this)">Auto</button>
+        <button onclick="pickDaypart('light', this)">Light</button>
+        <button onclick="pickDaypart('dark', this)">Dark</button>
+      </div>
+      <div class="form-text mt-1">Auto follows the clock: daytime light, evening dark.</div>
+    </div>
+
+    <div>
+      <span class="ps-label">Preview programme</span>
+      <input type="text" class="form-control" id="preview-title"
+             placeholder="Programme title" value="Morning Show"
+             oninput="updatePoster()">
+      <input type="text" class="form-control mt-2" id="preview-presenter"
+             placeholder="Presenter" value="Jane Smith"
+             oninput="updatePoster()">
+      <div class="row g-2 mt-0">
+        <div class="col">
+          <input type="time" class="form-control" id="preview-start"
+                 value="06:00" oninput="updatePoster()">
+        </div>
+        <div class="col">
+          <input type="time" class="form-control" id="preview-end"
+                 value="09:00" oninput="updatePoster()">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Poster preview -->
+  <div>
+    <div style="max-width:640px">
+      <div class="poster" id="poster-preview">
+        <div id="poster-inner" style="position:absolute;inset:0"></div>
+      </div>
+      <div class="ps-caption mt-2">
+        <span>Template: <b id="cap-template">Plate</b></span>
+        <span>Colourway: <b id="cap-daypart">Auto</b></span>
+        <span style="color:var(--text-muted);font-size:.76rem">
+          Visual preview only — poster generation requires backend integration.
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let activeChannel = '{{ (channels[0].name if channels else "")|e }}';
+let activeTemplate = 'plate';
+let activeDaypart  = 'auto';
+
+const LIGHT = {
+  bg: '#F8F3EE', fg: '#1B2E4F', accent: '#9C5A28',
+  sub: 'rgba(27,46,79,.55)', border: 'rgba(27,46,79,.18)'
+};
+const DARK = {
+  bg: '#1B2E4F', fg: '#ffffff', accent: '#E8FF3D',
+  sub: 'rgba(255,255,255,.55)', border: 'rgba(255,255,255,.15)'
+};
+
+function getColors() {
+  if (activeDaypart === 'light') return LIGHT;
+  if (activeDaypart === 'dark')  return DARK;
+  const h = new Date().getHours();
+  return (h >= 18 || h < 6) ? DARK : LIGHT;
+}
+
+function getDpLabel() {
+  if (activeDaypart === 'light') return 'Daytime';
+  if (activeDaypart === 'dark')  return 'Evening';
+  const h = new Date().getHours();
+  return (h >= 18 || h < 6) ? 'Evening' : 'Daytime';
+}
+
+function pickChannel(btn, name) {
+  document.querySelectorAll('.ch-pick').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeChannel = name;
+  updatePoster();
+}
+
+function pickTemplate(key, el) {
+  document.querySelectorAll('.tpl-opt').forEach(o => o.classList.remove('active'));
+  el.classList.add('active');
+  activeTemplate = key;
+  document.getElementById('cap-template').textContent =
+    el.querySelector('.tpl-name').textContent;
+  updatePoster();
+}
+
+function pickDaypart(val, btn) {
+  document.querySelectorAll('#daypart-seg button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeDaypart = val;
+  updatePoster();
+}
+
+function renderPosterHTML(c, title, presenter, timeRange, dpLabel) {
+  const sub = c.sub;
+  const ch  = activeChannel;
+  switch (activeTemplate) {
+    case 'plate': return `
+      <div style="position:absolute;inset:16px;border:2px solid ${c.border}"></div>
+      <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 12%">
+        <div style="font-family:var(--font-descriptor);font-weight:600;letter-spacing:.22em;text-transform:uppercase;font-size:.72rem;color:${c.accent}">Now Playing</div>
+        <div style="font-family:var(--font-descriptor);font-weight:300;letter-spacing:.14em;text-transform:uppercase;font-size:.8rem;color:${sub};margin-top:.35rem">${esc(ch)}</div>
+        <div style="font-family:var(--font-display);font-weight:800;font-size:2.6rem;line-height:1.04;margin:.5rem 0">${esc(title)}</div>
+        <div style="width:48px;height:3px;background:${c.accent};margin:.15rem 0 .8rem"></div>
+        <div style="font-family:var(--font-body);font-size:1.05rem;font-weight:700">${esc(timeRange)}</div>
+        <div style="font-family:var(--font-body);font-size:.9rem;color:${sub};margin-top:.15rem">${esc(presenter)}</div>
+      </div>`;
+
+    case 'band': return `
+      <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(16,29,52,.55) 0%,rgba(16,29,52,.12) 34%,rgba(16,29,52,.55) 100%)"></div>
+      <div style="position:absolute;top:18px;left:22px;font-family:var(--font-descriptor);font-weight:600;letter-spacing:.2em;text-transform:uppercase;font-size:.7rem;color:#fff;text-shadow:0 1px 4px rgba(16,29,52,.6)">${esc(dpLabel)} &middot; ${esc(ch)}</div>
+      <div style="position:absolute;left:0;right:0;bottom:0;background:${c.bg};color:${c.fg};padding:16px 22px;display:flex;align-items:center;gap:16px">
+        <div style="flex:1;min-width:0">
+          <div style="font-family:var(--font-descriptor);font-weight:600;letter-spacing:.18em;text-transform:uppercase;font-size:.62rem;color:${sub}">Now Playing</div>
+          <div style="font-family:var(--font-display);font-weight:800;font-size:1.7rem;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(title)}</div>
+        </div>
+        <div style="text-align:right;flex:0 0 auto">
+          <div style="font-family:var(--font-body);font-weight:700;font-size:1rem">${esc(timeRange)}</div>
+          <div style="font-family:var(--font-body);font-size:.8rem;color:${sub}">${esc(presenter)}</div>
+        </div>
+      </div>`;
+
+    case 'split': return `
+      <div style="position:absolute;inset:0;display:flex">
+        <div style="flex:0 0 38%;background:${c.accent};color:var(--color-navy);display:flex;flex-direction:column;justify-content:flex-end;padding:20px">
+          <div style="font-family:var(--font-descriptor);font-weight:600;letter-spacing:.14em;text-transform:uppercase;font-size:.66rem">${esc(ch)}</div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:22px 24px;background:${c.bg};color:${c.fg}">
+          <div style="font-family:var(--font-descriptor);font-weight:600;letter-spacing:.2em;text-transform:uppercase;font-size:.64rem;color:${c.accent}">Now Playing &middot; ${esc(dpLabel)}</div>
+          <div style="font-family:var(--font-display);font-weight:800;font-size:2.1rem;line-height:1.05;margin:.35rem 0 .5rem">${esc(title)}</div>
+          <div style="font-family:var(--font-body);font-weight:700;font-size:1rem">${esc(timeRange)}</div>
+          <div style="font-family:var(--font-body);font-size:.85rem;color:${sub}">${esc(presenter)}</div>
+        </div>
+      </div>`;
+
+    case 'minimal': return `
+      <div style="position:absolute;inset:0;background:${c.bg};color:${c.fg}">
+        <div style="position:absolute;top:22px;left:24px;font-family:var(--font-descriptor);font-weight:300;letter-spacing:.14em;text-transform:uppercase;font-size:.72rem;color:${sub}">${esc(ch)}</div>
+        <div style="position:absolute;left:24px;right:24px;bottom:24px">
+          <div style="font-family:var(--font-descriptor);font-weight:600;letter-spacing:.2em;text-transform:uppercase;font-size:.64rem;color:${c.accent};margin-bottom:.3rem">Now Playing &middot; ${esc(dpLabel)}</div>
+          <div style="font-family:var(--font-display);font-weight:800;font-size:2.3rem;line-height:1.02">${esc(title)}</div>
+          <div style="font-family:var(--font-body);font-weight:700;font-size:.95rem;margin-top:.35rem">${esc(timeRange)} <span style="color:${sub};font-weight:400">&middot; ${esc(presenter)}</span></div>
+        </div>
+      </div>`;
+
+    case 'masthead': return `
+      <div style="position:absolute;inset:0;background:${c.bg};color:${c.fg};padding:26px 32px;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1.5px solid ${c.border};padding-bottom:11px">
+          <div style="font-family:var(--font-descriptor);font-weight:600;letter-spacing:.24em;text-transform:uppercase;font-size:.6rem;color:${sub}">Radio EPG &middot; ${esc(ch)}</div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:6px 0">
+          <div style="font-family:var(--font-descriptor);font-weight:600;letter-spacing:.22em;text-transform:uppercase;font-size:.62rem;color:${c.accent};margin-bottom:.5rem">Now Playing</div>
+          <div style="font-family:var(--font-display);font-weight:800;font-size:3rem;line-height:.96;letter-spacing:-.015em">${esc(title)}</div>
+        </div>
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;border-top:1.5px solid ${c.border};padding-top:11px">
+          <div style="font-family:var(--font-body);font-size:.86rem;color:${sub}">With ${esc(presenter)}</div>
+          <div style="font-family:var(--font-display);font-weight:800;font-size:1.55rem">${esc(timeRange)}</div>
+        </div>
+      </div>`;
+
+    case 'broadsheet': return `
+      <div style="position:absolute;inset:0;background:${c.bg};color:${c.fg};padding:22px 34px;display:flex;flex-direction:column;text-align:center">
+        <div style="border-top:2px solid ${c.fg};border-bottom:1px solid ${c.border};padding:8px 0;display:flex;align-items:center;justify-content:center;gap:14px">
+          <div style="font-family:var(--font-display);font-weight:800;font-size:1.15rem;letter-spacing:.02em">${esc(ch)}</div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0 7%">
+          <div style="font-family:var(--font-descriptor);font-weight:600;letter-spacing:.3em;text-transform:uppercase;font-size:.6rem;color:${c.accent};margin-bottom:.55rem">Now Playing</div>
+          <div style="font-family:var(--font-display);font-weight:800;font-size:2.5rem;line-height:1.02">${esc(title)}</div>
+          <div style="font-family:var(--font-body);font-style:italic;font-size:.96rem;color:${sub};margin-top:.55rem">with ${esc(presenter)}</div>
+        </div>
+        <div style="border-top:1px solid ${c.border};padding-top:9px;font-family:var(--font-descriptor);font-weight:600;letter-spacing:.18em;text-transform:uppercase;font-size:.74rem">${esc(timeRange)} &middot; ${esc(dpLabel)}</div>
+      </div>`;
+
+    case 'feature': return `
+      <div style="position:absolute;inset:0;background:${c.bg};color:${c.fg};display:flex;align-items:stretch;padding:28px 30px;gap:26px">
+        <div style="flex:0 0 40%;display:flex;flex-direction:column;justify-content:space-between;border-right:1.5px solid ${c.border};padding-right:24px">
+          <div style="font-family:var(--font-descriptor);font-weight:300;letter-spacing:.14em;text-transform:uppercase;font-size:.62rem;color:${sub}">${esc(ch)}</div>
+          <div>
+            <div style="font-family:var(--font-descriptor);font-weight:600;letter-spacing:.22em;text-transform:uppercase;font-size:.58rem;color:${c.accent};margin-bottom:.2rem">On Air</div>
+            <div style="font-family:var(--font-display);font-weight:800;font-size:2.9rem;line-height:.92">${esc(timeRange.split('–')[0]||'')}</div>
+            <div style="font-family:var(--font-body);font-size:.82rem;color:${sub};margin-top:.15rem">until ${esc(timeRange.split('–')[1]||'')}</div>
+          </div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;justify-content:center;min-width:0">
+          <div style="font-family:var(--font-descriptor);font-weight:300;letter-spacing:.14em;text-transform:uppercase;font-size:.66rem;color:${sub};margin-bottom:.45rem">${esc(ch)}</div>
+          <div style="font-family:var(--font-display);font-weight:800;font-size:2.3rem;line-height:1.02">${esc(title)}</div>
+          <div style="width:40px;height:3px;background:${c.accent};margin:.75rem 0"></div>
+          <div style="font-family:var(--font-body);font-size:.9rem;color:${sub}">${esc(presenter)}</div>
+        </div>
+      </div>`;
+
+    case 'marquee': return `
+      <div style="position:absolute;inset:0;background:${c.bg};color:${c.fg};padding:22px">
+        <div style="position:absolute;inset:14px;border:2px solid ${c.fg}"></div>
+        <div style="position:absolute;inset:20px;border:1px solid ${c.border}"></div>
+        <div style="position:relative;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;padding:16px 8%">
+          <div style="font-family:var(--font-descriptor);font-weight:600;letter-spacing:.34em;text-transform:uppercase;font-size:.64rem;color:${c.accent}">On Air &middot; ${esc(ch)}</div>
+          <div>
+            <div style="font-family:var(--font-display);font-weight:800;font-size:2.8rem;line-height:1;letter-spacing:-.01em">${esc(title)}</div>
+            <div style="font-family:var(--font-body);font-size:.95rem;color:${sub};margin-top:.4rem">${esc(presenter)}</div>
+          </div>
+          <div style="font-family:var(--font-display);font-weight:800;font-size:1.3rem">${esc(timeRange)}</div>
+        </div>
+      </div>`;
+
+    case 'ledger': return `
+      <div style="position:absolute;inset:0;background:${c.bg};color:${c.fg};display:flex;flex-direction:column;justify-content:center;padding:28px 36px;gap:10px">
+        <div style="font-family:var(--font-descriptor);font-weight:600;letter-spacing:.28em;text-transform:uppercase;font-size:.62rem;color:${c.accent}">${esc(ch)}</div>
+        <div style="width:56px;height:3px;background:${c.accent}"></div>
+        <div style="font-family:var(--font-display);font-weight:800;font-size:2.8rem;line-height:1;letter-spacing:-.01em">${esc(title)}</div>
+        <div style="border-top:1px solid ${c.border};margin-top:4px;padding-top:10px;display:flex;justify-content:space-between;align-items:flex-end">
+          <div style="font-family:var(--font-body);font-size:.9rem;color:${sub}">${esc(presenter)}</div>
+          <div style="font-family:var(--font-descriptor);font-weight:600;letter-spacing:.12em;font-size:.78rem">${esc(timeRange)}</div>
+        </div>
+        <div style="border-top:1px solid ${c.border};height:1px"></div>
+        <div style="border-top:1px solid ${c.border};height:1px;opacity:.5"></div>
+      </div>`;
+
+    default: return `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:${c.fg}">Select a template</div>`;
+  }
+}
+
+function updatePoster() {
+  const title     = document.getElementById('preview-title').value || 'Programme';
+  const presenter = document.getElementById('preview-presenter').value || '';
+  const start     = document.getElementById('preview-start').value || '';
+  const end       = document.getElementById('preview-end').value || '';
+  const timeRange = start && end ? `${start}–${end}` : start || '';
+  const c         = getColors();
+  const dpLabel   = getDpLabel();
+
+  const poster  = document.getElementById('poster-preview');
+  const inner   = document.getElementById('poster-inner');
+  poster.style.background = c.bg;
+  poster.style.color = c.fg;
+  inner.innerHTML = renderPosterHTML(c, title, presenter, timeRange, dpLabel);
+
+  document.getElementById('cap-daypart').textContent =
+    activeDaypart === 'auto' ? `Auto (${dpLabel.toLowerCase()})` : dpLabel;
+}
+
+function getDpLabel() {
+  if (activeDaypart === 'light') return 'Daytime';
+  if (activeDaypart === 'dark')  return 'Evening';
+  const h = new Date().getHours();
+  return (h >= 18 || h < 6) ? 'Evening' : 'Daytime';
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+updatePoster();
+</script>
+{% endblock %}

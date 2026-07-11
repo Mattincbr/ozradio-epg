@@ -764,6 +764,89 @@ def register_routes(app: Flask) -> None:
         except Exception as exc:
             return jsonify({"error": str(exc)}), 500
 
+    # ------------------------------------------------------------------ EPG Preview
+
+    @app.route("/epg-preview")
+    def epg_preview():
+        channels = [c for c in store().get_channels() if c.get("enabled", True)]
+        today = date.today()
+        return render_template("epg_preview.html", channels=channels, today=today.isoformat())
+
+    @app.route("/api/epg-preview")
+    def api_epg_preview():
+        """Return timeline blocks for the EPG preview page."""
+        day_str = request.args.get("date", date.today().isoformat())
+        try:
+            day = date.fromisoformat(day_str)
+        except ValueError:
+            day = date.today()
+
+        channels = [c for c in store().get_channels() if c.get("enabled", True)]
+        rows = []
+        import datetime as dt
+
+        for ch in channels:
+            p = schedule_path(ch["tvg_id"])
+            if not p.exists():
+                rows.append({"id": ch["tvg_id"], "name": ch["name"], "blocks": []})
+                continue
+            try:
+                weekly = load_schedule_yaml(p)
+                progs = expand_schedule(weekly, day, 1)
+            except Exception:
+                rows.append({"id": ch["tvg_id"], "name": ch["name"], "blocks": []})
+                continue
+
+            blocks = []
+            now_utc = dt.datetime.now(dt.timezone.utc)
+            for prog in progs:
+                start_local = prog.start
+                stop_local  = prog.stop
+                start_min = start_local.hour * 60 + start_local.minute
+                stop_min  = stop_local.hour * 60  + stop_local.minute
+                if stop_min <= start_min:
+                    stop_min = start_min + 30
+                duration = stop_min - start_min
+                left_pct = start_min / 1440 * 100
+                width_pct = duration / 1440 * 100
+
+                hour = start_local.hour
+                if hour < 6:
+                    color = "var(--color-slate-blue)"
+                    fg = "#fff"
+                elif hour < 18:
+                    color = "var(--color-navy)"
+                    fg = "#fff"
+                else:
+                    color = "var(--color-coral)"
+                    fg = "#fff"
+
+                try:
+                    on_air = start_local <= now_utc.astimezone(start_local.tzinfo) < stop_local
+                except Exception:
+                    on_air = False
+
+                blocks.append({
+                    "title": prog.title,
+                    "start": start_local.strftime("%H:%M"),
+                    "stop": stop_local.strftime("%H:%M"),
+                    "left_pct": round(left_pct, 3),
+                    "width_pct": round(width_pct, 3),
+                    "color": color,
+                    "fg": fg,
+                    "on_air": on_air,
+                })
+            rows.append({"id": ch["tvg_id"], "name": ch["name"], "blocks": blocks})
+
+        return jsonify({"rows": rows, "date": day_str})
+
+    # ------------------------------------------------------------------ Poster Studio
+
+    @app.route("/poster-studio")
+    def poster_studio():
+        channels = [c for c in store().get_channels() if c.get("enabled", True)]
+        return render_template("poster_studio.html", channels=channels)
+
     # ------------------------------------------------------------------ API helpers
 
     @app.route("/api/schedule/<tvg_id>")

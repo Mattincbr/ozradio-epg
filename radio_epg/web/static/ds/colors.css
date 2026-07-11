@@ -1,0 +1,50 @@
+/* LadsCorp — Color tokens
+   Primary palette + extended palette per brand brief, plus semantic aliases. */
+
+:root {
+  /* ---- Primary palette ---- */
+  --color-navy: #1B2E4F;        /* Corporate Navy — wordmark, headers, primary UI */
+  --color-salmon: #E8FF3D;      /* Fluorescent Yellow — brand accent, CTAs */
+  --color-white: #FFFFFF;
+  --color-ivory: #F8F3EE;       /* Warm Ivory — page/section backgrounds */
+
+  /* ---- Extended palette ---- */
+  --color-coral: #9C5A28;       /* Rich Whiskey — hover/pressed accent, emphasis */
+  --color-gold: #C9A96E;        /* Champagne Gold — literary/premium accent (Grubby Book) */
+  --color-slate-blue: #7B9BC4;  /* Slate Blue — secondary accent, links on dark */
+  --color-charcoal: #2A2A2A;    /* Charcoal — body copy, high-contrast text */
+
+  /* ---- Tints & shades (derived, for hover/press/disabled states) ---- */
+  --color-navy-10: #1B2E4F1a;
+  --color-navy-dark: #101d34;
+  --color-salmon-dark: #c8db1f;
+  --color-salmon-light: #f2ff9e;
+  --color-ivory-dark: #efe6da;
+  --color-charcoal-60: #2a2a2a99;
+  --color-charcoal-30: #2a2a2a4d;
+
+  /* ---- Semantic aliases ---- */
+  --surface-page: var(--color-ivory);
+  --surface-card: var(--color-white);
+  --surface-inverse: var(--color-navy);
+  --surface-sunken: var(--color-ivory-dark);
+
+  --text-primary: var(--color-charcoal);
+  --text-heading: var(--color-navy);
+  --text-inverse: var(--color-white);
+  --text-muted: var(--color-charcoal-60);
+  --text-accent: var(--color-coral);
+
+  --border-default: #1B2E4F26;
+  --border-strong: var(--color-navy);
+  --border-hairline: #2A2A2A1f;
+
+  --accent-primary: var(--color-salmon);
+  --accent-primary-hover: var(--color-salmon-dark);
+  --accent-secondary: var(--color-slate-blue);
+  --accent-literary: var(--color-gold);
+
+  --focus-ring: var(--color-slate-blue);
+
+  --shadow-color: 27 46 79; /* navy, for use in rgb() shadows */
+}

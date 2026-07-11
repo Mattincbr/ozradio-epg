@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+{% block title %}EPG Preview{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <div class="page-eyebrow">Guide</div>
+    <h1><i class="bi bi-bar-chart-steps me-2"></i>EPG Preview</h1>
+  </div>
+  <ul class="nav nav-pills" id="day-tabs">
+    <!-- Populated by JS -->
+  </ul>
+</div>
+
+<!-- Now/Next strip -->
+<div class="nn-strip" id="nn-strip">
+  <div class="text-muted small align-self-center" style="padding:.5rem 0">Loading…</div>
+</div>
+
+<!-- Timeline -->
+<div class="tl-wrap">
+  <!-- Ruler -->
+  <div class="tl-row tl-ruler">
+    <div class="tl-label">
+      <span class="tl-cid" style="text-transform:uppercase;letter-spacing:.1em;font-weight:600">Channel</span>
+    </div>
+    <div class="tl-track" id="tl-ruler-track">
+      <!-- hour ticks added by JS -->
+    </div>
+  </div>
+  <!-- Channel rows -->
+  <div id="tl-rows"></div>
+</div>
+
+<div class="tl-legend">
+  <span><span class="tl-dot" style="background:var(--color-slate-blue)"></span>Overnight (before 06:00)</span>
+  <span><span class="tl-dot" style="background:var(--color-navy)"></span>Daytime (06:00–18:00)</span>
+  <span><span class="tl-dot" style="background:var(--color-coral)"></span>Evening (after 18:00)</span>
+  <span><span class="tl-dot" style="background:var(--color-coral);width:3px;border-radius:2px"></span>Now — <span id="now-label">—</span></span>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const TODAY = '{{ today }}';
+const CHANNELS = {{ channels | tojson }};
+
+let selectedDate = TODAY;
+
+function buildDayTabs() {
+  const tabs = document.getElementById('day-tabs');
+  tabs.innerHTML = '';
+  const base = new Date(TODAY + 'T00:00:00');
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(base);
+    d.setDate(base.getDate() + i);
+    const iso = d.toISOString().split('T')[0];
+    const label = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' :
+      d.toLocaleDateString('en-AU', {weekday: 'short', day: 'numeric', month: 'short'});
+    const li = document.createElement('li');
+    li.className = 'nav-item';
+    li.innerHTML = `<button class="nav-link ${i === 0 ? 'active' : ''}"
+      onclick="selectDay('${iso}', this)">${label}</button>`;
+    tabs.appendChild(li);
+  }
+}
+
+function selectDay(iso, btn) {
+  document.querySelectorAll('#day-tabs .nav-link').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedDate = iso;
+  loadPreview();
+}
+
+function buildRuler() {
+  const track = document.getElementById('tl-ruler-track');
+  track.innerHTML = '';
+  for (let h = 0; h < 24; h++) {
+    const tick = document.createElement('div');
+    tick.className = 'tl-tick';
+    tick.style.left = (h / 24 * 100) + '%';
+    tick.textContent = h === 0 ? 'Midnight' : `${h}:00`;
+    track.appendChild(tick);
+  }
+  const nowMarker = document.createElement('div');
+  nowMarker.className = 'tl-now';
+  nowMarker.id = 'tl-ruler-now';
+  track.appendChild(nowMarker);
+}
+
+function updateNowMarker() {
+  const now = new Date();
+  const mins = now.getHours() * 60 + now.getMinutes();
+  const pct = mins / 1440 * 100;
+  const label = now.toLocaleTimeString('en-AU', {hour: '2-digit', minute: '2-digit'});
+  document.getElementById('now-label').textContent = label;
+  document.querySelectorAll('.tl-now').forEach(el => {
+    el.style.left = pct + '%';
+  });
+}
+
+async function loadPreview() {
+  const r = await fetch(`/api/epg-preview?date=${selectedDate}`);
+  const data = await r.json();
+  renderRows(data.rows);
+  renderNowNext(data.rows);
+  updateNowMarker();
+}
+
+function renderRows(rows) {
+  const container = document.getElementById('tl-rows');
+  container.innerHTML = '';
+  rows.forEach(row => {
+    const div = document.createElement('div');
+    div.className = 'tl-row';
+    div.innerHTML = `
+      <div class="tl-label">
+        <span class="tl-cname">${escHtml(row.name)}</span>
+        <span class="tl-cid">${escHtml(row.id)}</span>
+      </div>
+      <div class="tl-track" style="position:relative">
+        ${row.blocks.length === 0
+          ? '<div class="tl-empty">No schedule configured &mdash; add slots in the Schedule editor.</div>'
+          : row.blocks.map(b => `
+            <div class="tl-block ${b.on_air ? 'onair' : ''}"
+                 style="left:${b.left_pct}%;width:${b.width_pct}%;background:${b.color};color:${b.fg}"
+                 title="${escHtml(b.title)} ${b.start}–${b.stop}">
+              ${b.on_air ? '<span class="tl-nowpill">On air</span>' : ''}
+              <span class="tl-btitle">${escHtml(b.title)}</span>
+              <span class="tl-btime">${b.start}–${b.stop}</span>
+            </div>`).join('')}
+        <div class="tl-now" style="left:0%"></div>
+      </div>`;
+    container.appendChild(div);
+  });
+  updateNowMarker();
+}
+
+function renderNowNext(rows) {
+  const strip = document.getElementById('nn-strip');
+  const now = new Date();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const cards = rows
+    .filter(r => r.blocks.length > 0)
+    .map(row => {
+      const toMins = t => {
+        const [h, m] = t.split(':').map(Number);
+        return h * 60 + m;
+      };
+      const onNow  = row.blocks.find(b => toMins(b.start) <= nowMins && nowMins < toMins(b.stop));
+      const onNext = onNow ? row.blocks.find(b => toMins(b.start) >= toMins(onNow.stop)) : null;
+      if (!onNow) return '';
+      return `<div class="nn-card">
+        <div class="nn-ch">${escHtml(row.name)}</div>
+        <div class="nn-row nn-now">
+          <span class="nn-lab">Now</span>
+          <span class="nn-title">${escHtml(onNow.title)}</span>
+          <span class="nn-time">${onNow.start}–${onNow.stop}</span>
+        </div>
+        <div class="nn-row">
+          <span class="nn-lab">Next</span>
+          <span class="nn-title">${onNext ? escHtml(onNext.title) : '—'}</span>
+          <span class="nn-time">${onNext ? onNext.start : ''}</span>
+        </div>
+      </div>`;
+    }).filter(Boolean).join('');
+  strip.innerHTML = cards || '<div class="text-muted small align-self-center" style="padding:.5rem 0">No schedules for today.</div>';
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+buildDayTabs();
+buildRuler();
+loadPreview();
+setInterval(updateNowMarker, 60000);
+</script>
+{% endblock %}
