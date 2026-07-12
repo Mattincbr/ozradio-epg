@@ -30,6 +30,7 @@ ai = [
 
 [project.scripts]
 radio-epg = "radio_epg.cli:cli"
+radio-epg-web = "radio_epg.web.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
