@@ -208,29 +208,125 @@ def register_routes(app: Flask) -> None:
             return redirect(url_for("schedule_edit", tvg_id=tvg_id))
 
         scraper = _pick_scraper(scrape_url)
-        if not scraper:
-            flash(f"No scraper available for that URL.", "danger")
-            return redirect(url_for("schedule_edit", tvg_id=tvg_id))
         try:
             weekly = scraper.scrape(scrape_url)
-            schedule_dict: dict = {}
-            for day_key, day_sched in weekly.days.items():
-                schedule_dict[day_key] = [
-                    {k: v for k, v in {
-                        "start": s.start,
-                        "title": s.title,
-                        "presenter": s.presenter,
-                        "description": s.description,
-                        "duration": s.duration,
-                    }.items() if v}
-                    for s in day_sched.slots
-                ]
+            schedule_dict: dict = _weekly_to_dict(weekly)
             _save_schedule(tvg_id, ch, schedule_dict,
                            timezone=weekly.timezone)
             flash("Schedule scraped and saved.", "success")
         except ScraperError as exc:
             flash(f"Scrape failed: {exc}", "danger")
         return redirect(url_for("schedule_edit", tvg_id=tvg_id))
+
+    @app.route("/api/schedule/<tvg_id>/import", methods=["POST"])
+    def schedule_import_api(tvg_id: str):
+        """AJAX import endpoint: URL / text / image → {ok, days}."""
+        ch = store().get_channel(tvg_id)
+        if not ch:
+            return jsonify({"ok": False, "error": "Channel not found"}), 404
+
+        ct = request.content_type or ""
+        if "multipart" in ct:
+            import_type = request.form.get("type", "image")
+        else:
+            body = request.get_json(silent=True) or {}
+            import_type = body.get("type", "url")
+
+        try:
+            if import_type == "url":
+                url = body.get("url", "").strip()
+                if not url:
+                    return jsonify({"ok": False, "error": "No URL provided"})
+                scraper = _pick_scraper(url)
+                weekly = scraper.scrape(url)
+                days = _weekly_to_dict(weekly)
+                return jsonify({"ok": True, "days": days})
+
+            elif import_type == "text":
+                text = body.get("text", "").strip()
+                default_day = body.get("day", "weekdays")
+                if not text:
+                    return jsonify({"ok": False, "error": "No text provided"})
+                from ..scrapers.text_parser import parse_schedule_text
+                days = parse_schedule_text(text, default_day=default_day)
+                if not days:
+                    return jsonify({"ok": False, "error": "No schedule slots found in the pasted text."})
+                return jsonify({"ok": True, "days": days})
+
+            elif import_type == "image":
+                api_key = (
+                    store().get_setting("anthropic_api_key", "") or
+                    os.environ.get("ANTHROPIC_API_KEY", "")
+                )
+                if not api_key:
+                    return jsonify({
+                        "ok": False,
+                        "error": "No Anthropic API key configured. Add one in Settings.",
+                    })
+                file = request.files.get("file")
+                if not file:
+                    return jsonify({"ok": False, "error": "No image file uploaded"})
+                image_bytes = file.read()
+                ext = Path(secure_filename(file.filename or "img.jpg")).suffix.lower()
+                media_type = {
+                    ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+                    ".png": "image/png", ".gif": "image/gif", ".webp": "image/webp",
+                }.get(ext, "image/jpeg")
+                from ..scrapers.image_parser import parse_image_with_claude
+                days = parse_image_with_claude(image_bytes, media_type, api_key)
+                if not days:
+                    return jsonify({"ok": False, "error": "No schedule data found in the image."})
+                return jsonify({"ok": True, "days": days})
+
+            else:
+                return jsonify({"ok": False, "error": f"Unknown import type: {import_type}"})
+
+        except ScraperError as exc:
+            return jsonify({"ok": False, "error": str(exc)})
+        except Exception as exc:
+            return jsonify({"ok": False, "error": f"Import failed: {exc}"})
+
+    @app.route("/api/schedule-library")
+    def schedule_library_list():
+        from ..schedule_library import list_templates, match_templates
+        name = request.args.get("match", "")
+        templates = match_templates(name) if name else list_templates()
+        return jsonify({"templates": templates})
+
+    @app.route("/api/schedule-library/<template_id>")
+    def schedule_library_get(template_id: str):
+        from ..schedule_library import load_template_days
+        days = load_template_days(template_id)
+        if days is None:
+            return jsonify({"ok": False, "error": "Template not found"}), 404
+        return jsonify({"ok": True, "days": days})
+
+    @app.route("/settings", methods=["GET", "POST"])
+    def settings():
+        if request.method == "POST":
+            api_key = request.form.get("anthropic_api_key", "").strip()
+            store().set_setting("anthropic_api_key", api_key)
+            flash("Settings saved.", "success")
+            return redirect(url_for("settings"))
+        current = store().get_settings()
+        return render_template("settings.html", settings=current)
+
+    def _weekly_to_dict(weekly) -> dict:
+        days = {}
+        for day_key, day_sched in weekly.days.items():
+            days[day_key] = [
+                {k: v for k, v in {
+                    "start": s.start,
+                    "title": s.title,
+                    "presenter": s.presenter,
+                    "description": s.description,
+                    "duration": s.duration,
+                    "image": s.image,
+                    "url": s.url,
+                }.items() if v}
+                for s in day_sched.slots
+            ]
+        return days
 
     def _save_schedule(tvg_id: str, ch: dict, schedule_dict: dict,
                        timezone: str | None = None) -> None:
@@ -588,6 +684,192 @@ def register_routes(app: Flask) -> None:
         return send_file(buf, as_attachment=True, download_name="epg.xml",
                          mimetype="application/xml")
 
+    # ------------------------------------------------------------------ Radio Browser
+
+    _RB_BASE = "https://de1.api.radio-browser.info/json"
+    _RB_HEADERS = {
+        "User-Agent": "radio-epg/0.1 (https://github.com/Mattincbr/reimagined-octo-disco)"
+    }
+
+    @app.route("/api/radiobrowser/countries")
+    def rb_countries():
+        try:
+            r = requests.get(f"{_RB_BASE}/countries",
+                             headers=_RB_HEADERS, timeout=15,
+                             params={"order": "name", "hidebroken": "true"})
+            r.raise_for_status()
+            return jsonify(r.json())
+        except Exception as exc:
+            return jsonify({"error": str(exc)}), 500
+
+    @app.route("/api/radiobrowser/tags")
+    def rb_tags():
+        try:
+            r = requests.get(f"{_RB_BASE}/tags",
+                             headers=_RB_HEADERS, timeout=15,
+                             params={"order": "stationcount", "reverse": "true",
+                                     "limit": 300, "hidebroken": "true"})
+            r.raise_for_status()
+            return jsonify(r.json())
+        except Exception as exc:
+            return jsonify({"error": str(exc)}), 500
+
+    @app.route("/api/radiobrowser/search")
+    def rb_search():
+        params: dict = {
+            "order":       request.args.get("order", "votes"),
+            "reverse":     "true",
+            "hidebroken":  "true",
+            "limit":       request.args.get("limit", "100"),
+        }
+        if request.args.get("countrycode"):
+            params["countrycode"] = request.args["countrycode"].upper()
+        if request.args.get("tag"):
+            params["tag"] = request.args["tag"]
+        if request.args.get("name"):
+            params["name"] = request.args["name"]
+
+        try:
+            r = requests.get(f"{_RB_BASE}/stations/search",
+                             headers=_RB_HEADERS, timeout=20, params=params)
+            r.raise_for_status()
+            stations = r.json()
+
+            channels = []
+            for s in stations:
+                name = (s.get("name") or "").strip()
+                url  = s.get("url_resolved") or s.get("url", "")
+                if not name or not url:
+                    continue
+                tags_str  = (s.get("tags") or "").strip(", ")
+                codec     = s.get("codec", "")
+                bitrate   = s.get("bitrate", 0)
+                country   = s.get("country", "")
+                cc        = s.get("countrycode", "")
+                channels.append({
+                    "tvg_id": f"rb-{s['stationuuid']}",
+                    "name":   name,
+                    "url":    url,
+                    "logo":   s.get("favicon") or "",
+                    "group":  f"{cc} — {tags_str[:40]}" if tags_str else cc,
+                    "_rb": {
+                        "country": country,
+                        "codec":   codec,
+                        "bitrate": bitrate,
+                        "tags":    tags_str,
+                        "votes":   s.get("votes", 0),
+                    },
+                })
+            return jsonify({"channels": channels, "total": len(channels)})
+        except Exception as exc:
+            return jsonify({"error": str(exc)}), 500
+
+    # ------------------------------------------------------------------ EPG Preview
+
+    @app.route("/epg-preview")
+    def epg_preview():
+        channels = [c for c in store().get_channels() if c.get("enabled", True)]
+        today = date.today()
+        return render_template("epg_preview.html", channels=channels, today=today.isoformat())
+
+    @app.route("/api/epg-preview")
+    def api_epg_preview():
+        """Return timeline blocks for the EPG preview page."""
+        day_str = request.args.get("date", date.today().isoformat())
+        try:
+            day = date.fromisoformat(day_str)
+        except ValueError:
+            day = date.today()
+
+        channels = [c for c in store().get_channels() if c.get("enabled", True)]
+        rows = []
+        import datetime as dt
+
+        for ch in channels:
+            p = schedule_path(ch["tvg_id"])
+            if not p.exists():
+                rows.append({"id": ch["tvg_id"], "name": ch["name"], "blocks": []})
+                continue
+            try:
+                weekly = load_schedule_yaml(p)
+                progs = expand_schedule(weekly, day, 1)
+            except Exception:
+                rows.append({"id": ch["tvg_id"], "name": ch["name"], "blocks": []})
+                continue
+
+            blocks = []
+            now_utc = dt.datetime.now(dt.timezone.utc)
+            for prog in progs:
+                start_local = prog.start
+                stop_local  = prog.stop
+                start_min = start_local.hour * 60 + start_local.minute
+                stop_min  = stop_local.hour * 60  + stop_local.minute
+                if stop_min <= start_min:
+                    stop_min = start_min + 30
+                duration = stop_min - start_min
+                left_pct = start_min / 1440 * 100
+                width_pct = duration / 1440 * 100
+
+                hour = start_local.hour
+                if hour < 6:
+                    color = "var(--color-slate-blue)"
+                    fg = "#fff"
+                elif hour < 18:
+                    color = "var(--color-navy)"
+                    fg = "#fff"
+                else:
+                    color = "var(--color-coral)"
+                    fg = "#fff"
+
+                try:
+                    on_air = start_local <= now_utc.astimezone(start_local.tzinfo) < stop_local
+                except Exception:
+                    on_air = False
+
+                blocks.append({
+                    "title": prog.title,
+                    "start": start_local.strftime("%H:%M"),
+                    "stop": stop_local.strftime("%H:%M"),
+                    "left_pct": round(left_pct, 3),
+                    "width_pct": round(width_pct, 3),
+                    "color": color,
+                    "fg": fg,
+                    "on_air": on_air,
+                })
+            rows.append({"id": ch["tvg_id"], "name": ch["name"], "blocks": blocks})
+
+        return jsonify({"rows": rows, "date": day_str})
+
+    # ------------------------------------------------------------------ Poster Studio
+
+    @app.route("/poster-studio")
+    def poster_studio():
+        channels = [c for c in store().get_channels() if c.get("enabled", True)]
+        return render_template("poster_studio.html", channels=channels)
+
+    @app.route("/api/poster-export", methods=["POST"])
+    def poster_export():
+        body = request.get_json(force=True, silent=True) or {}
+        template  = body.get("template",  "plate")
+        channel   = body.get("channel",   "Station")
+        daypart   = body.get("daypart",   "auto")
+        title     = body.get("title",     "Programme")
+        presenter = body.get("presenter", "")
+        t_start   = body.get("start",     "")
+        t_end     = body.get("end",       "")
+
+        try:
+            from .poster_renderer import render_poster_png
+            png = render_poster_png(template, channel, daypart, title, presenter, t_start, t_end)
+        except Exception as exc:
+            return jsonify({"error": str(exc)}), 500
+
+        safe_title = "".join(c for c in title if c.isalnum() or c in " -_")[:40].strip() or "poster"
+        filename = f"{safe_title.replace(' ', '-').lower()}.png"
+        buf = io.BytesIO(png)
+        buf.seek(0)
+        return send_file(buf, mimetype="image/png", as_attachment=True, download_name=filename)
+
     # ------------------------------------------------------------------ API helpers
 
     @app.route("/api/schedule/<tvg_id>")
@@ -628,7 +910,19 @@ def register_routes(app: Flask) -> None:
 def _pick_scraper(url: str):
     if "abc.net.au" in url:
         return ABCScraper()
-    return None
+    _nine_radio_domains = (
+        "4bc.com.au", "2gb.com.au", "3aw.com.au",
+        "5aa.com.au", "6pr.com.au", "9radio.com.au",
+        "2ue.com.au", "4bh.com.au", "6pb.com.au",
+    )
+    if any(d in url for d in _nine_radio_domains):
+        from ..scrapers.nine_radio import NineRadioScraper
+        return NineRadioScraper()
+    if "novafm.com.au" in url or "smoothfm.com.au" in url:
+        from ..scrapers.nova_entertainment import NovaEntertainmentScraper
+        return NovaEntertainmentScraper()
+    from ..scrapers.generic import GenericScraper
+    return GenericScraper()
 
 
 def _common_timezones() -> list[str]:

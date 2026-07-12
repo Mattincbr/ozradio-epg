@@ -1,0 +1,71 @@
+_meta:
+  id: 2gb
+  display_name: "2GB Sydney"
+  description: "2GB — Sydney's #1 talk radio station, news, sport and talkback."
+  country: AU
+  notes: "Verify current schedule at https://www.2gb.com/shows/ as presenter lineups change."
+  match:
+    - "2gb"
+    - "2gb sydney"
+    - "2gb talk"
+    - "nine radio sydney"
+
+channel:
+  id: 2gb
+  name: "2GB"
+  timezone: "Australia/Sydney"
+  website: "https://www.2gb.com"
+
+schedule:
+  weekdays:
+    - start: "00:00"
+      title: "2GB Overnight"
+    - start: "05:00"
+      title: "Ben Fordham Live"
+      description: "Australia's most listened-to Breakfast show — hard news, sport and community debate."
+      url: "https://www.2gb.com/shows/ben-fordham-live"
+    - start: "09:00"
+      title: "Deborah Knight"
+      description: "Talkback, community and lifestyle with Deborah Knight."
+      url: "https://www.2gb.com/shows/deborah-knight"
+    - start: "12:00"
+      title: "Ray Hadley"
+      description: "Ray Hadley's Afternoon Show — news, opinion and sport."
+      url: "https://www.2gb.com/shows/ray-hadley"
+    - start: "15:00"
+      title: "Mark Levy Drive"
+      description: "Drive home with sport, news and community debate."
+      url: "https://www.2gb.com/shows/mark-levy"
+    - start: "18:00"
+      title: "Steve Price"
+      description: "Evening opinion and debate."
+    - start: "22:00"
+      title: "2GB Late"
+
+  saturday:
+    - start: "00:00"
+      title: "2GB Overnight"
+    - start: "05:00"
+      title: "Saturday Breakfast"
+    - start: "09:00"
+      title: "Weekend Talkback"
+    - start: "12:00"
+      title: "The Saturday Afternoon Show"
+    - start: "18:00"
+      title: "Saturday Evening"
+    - start: "22:00"
+      title: "2GB Late"
+
+  sunday:
+    - start: "00:00"
+      title: "2GB Overnight"
+    - start: "05:00"
+      title: "Sunday Breakfast"
+    - start: "09:00"
+      title: "Weekend Talkback"
+    - start: "12:00"
+      title: "The Sunday Afternoon Show"
+    - start: "18:00"
+      title: "Sunday Evening"
+    - start: "22:00"
+      title: "2GB Late"

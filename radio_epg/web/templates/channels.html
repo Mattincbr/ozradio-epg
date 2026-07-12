@@ -2,78 +2,97 @@
 {% block title %}Channels{% endblock %}
 {% block content %}
 <div class="page-header">
-  <h1><i class="bi bi-broadcast me-2"></i>Channels</h1>
+  <div>
+    <div class="page-eyebrow">Roster</div>
+    <h1><i class="bi bi-broadcast me-2"></i>Channels</h1>
+  </div>
   <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addChannelModal">
     <i class="bi bi-plus-lg me-1"></i>Add Channel
   </button>
 </div>
 
 {% if channels %}
-<div class="table-responsive">
-  <table class="table table-hover align-middle" id="channels-table">
-    <thead>
-      <tr>
-        <th width="50">Logo</th>
-        <th>Name</th>
-        <th>TVG ID</th>
-        <th>Group</th>
-        <th>Schedule</th>
-        <th>Enabled</th>
-        <th width="120">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for ch in channels %}
-      <tr id="row-{{ ch.tvg_id|replace('.','_') }}">
-        <td>
-          {% set logo = channel_logo_url(ch) %}
-          {% if logo %}
-            <img src="{{ logo }}" alt="" class="ch-thumb" onerror="this.style.display='none'">
-          {% else %}
-            <div class="ch-thumb-placeholder"><i class="bi bi-broadcast-pin"></i></div>
-          {% endif %}
-        </td>
-        <td><strong>{{ ch.name }}</strong></td>
-        <td><code class="text-muted">{{ ch.tvg_id }}</code></td>
-        <td><span class="text-muted small">{{ ch.group or '—' }}</span></td>
-        <td>
-          {% if has_schedule(ch.tvg_id) %}
-            <a href="{{ url_for('schedule_edit', tvg_id=ch.tvg_id) }}"
-               class="badge bg-success-subtle text-success-emphasis text-decoration-none">
-              <i class="bi bi-calendar-check me-1"></i>Edit
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0" id="channels-table">
+      <thead>
+        <tr>
+          <th width="60" class="ps-3">Logo</th>
+          <th>Name</th>
+          <th>TVG ID</th>
+          <th>Group</th>
+          <th>Schedule</th>
+          <th>Enabled</th>
+          <th width="120">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ch in channels %}
+        <tr id="row-{{ ch.tvg_id|replace('.','_') }}">
+          <td class="ps-3">
+            {% set logo = channel_logo_url(ch) %}
+            {% if logo %}
+              <img src="{{ logo }}" alt="" class="ch-thumb"
+                   onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+              <div class="ch-thumb-placeholder" style="display:none"><i class="bi bi-broadcast-pin"></i></div>
+            {% else %}
+              <div class="ch-thumb-placeholder"><i class="bi bi-broadcast-pin"></i></div>
+            {% endif %}
+          </td>
+          <td>
+            <strong>{{ ch.name }}</strong>
+            {% if ch.get('tagline') or ch.get('frequency') %}
+            <div class="text-muted" style="font-size:.72rem">
+              {{ ch.get('tagline') or '' }}{% if ch.get('tagline') and ch.get('frequency') %} &middot; {% endif %}{{ ch.get('frequency') or '' }}
+            </div>
+            {% endif %}
+          </td>
+          <td>
+            <code>{{ ch.tvg_id }}</code>
+            {% if ch.get('format') %}
+            <div class="text-muted" style="font-size:.66rem">{{ ch.format }}</div>
+            {% endif %}
+          </td>
+          <td><span class="text-muted small">{{ ch.group or '—' }}</span></td>
+          <td>
+            {% if has_schedule(ch.tvg_id) %}
+              <a href="{{ url_for('schedule_edit', tvg_id=ch.tvg_id) }}"
+                 class="ls-badge ls-badge--sched" style="cursor:pointer">
+                <i class="bi bi-calendar-check"></i> Schedule
+              </a>
+            {% else %}
+              <a href="{{ url_for('schedule_edit', tvg_id=ch.tvg_id) }}"
+                 class="ls-badge ls-badge--nosched" style="cursor:pointer">
+                <i class="bi bi-plus"></i> Create
+              </a>
+            {% endif %}
+          </td>
+          <td>
+            <div class="form-check form-switch mb-0">
+              <input type="checkbox" class="form-check-input" role="switch"
+                     id="toggle-{{ ch.tvg_id|replace('.','_') }}"
+                     {% if ch.get('enabled', True) %}checked{% endif %}
+                     onchange="toggleChannel('{{ ch.tvg_id }}', this)">
+            </div>
+          </td>
+          <td>
+            <a href="{{ url_for('channel_edit', tvg_id=ch.tvg_id) }}"
+               class="btn btn-xs btn-outline-secondary" title="Edit">
+              <i class="bi bi-pencil"></i>
             </a>
-          {% else %}
-            <a href="{{ url_for('schedule_edit', tvg_id=ch.tvg_id) }}"
-               class="badge bg-warning-subtle text-warning-emphasis text-decoration-none">
-              <i class="bi bi-plus me-1"></i>Create
-            </a>
-          {% endif %}
-        </td>
-        <td>
-          <div class="form-check form-switch mb-0">
-            <input type="checkbox" class="form-check-input" role="switch"
-                   id="toggle-{{ ch.tvg_id|replace('.','_') }}"
-                   {% if ch.get('enabled', True) %}checked{% endif %}
-                   onchange="toggleChannel('{{ ch.tvg_id }}', this)">
-          </div>
-        </td>
-        <td>
-          <a href="{{ url_for('channel_edit', tvg_id=ch.tvg_id) }}"
-             class="btn btn-xs btn-outline-secondary" title="Edit">
-            <i class="bi bi-pencil"></i>
-          </a>
-          <form action="{{ url_for('channel_delete', tvg_id=ch.tvg_id) }}"
-                method="post" class="d-inline"
-                onsubmit="return confirm('Remove {{ ch.name }}?')">
-            <button type="submit" class="btn btn-xs btn-outline-danger" title="Remove">
-              <i class="bi bi-trash"></i>
-            </button>
-          </form>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+            <form action="{{ url_for('channel_delete', tvg_id=ch.tvg_id) }}"
+                  method="post" class="d-inline"
+                  onsubmit="return confirm('Remove {{ ch.name }}?')">
+              <button type="submit" class="btn btn-xs btn-outline-danger" title="Remove">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 {% else %}
 <div class="empty-state">
@@ -86,27 +105,29 @@
 </div>
 {% endif %}
 
-<!-- Add Channel Modal -->
+<!-- Add Channel Modal (LadsCorp style) -->
 <div class="modal fade" id="addChannelModal" tabindex="-1">
   <div class="modal-dialog">
     <form action="{{ url_for('channel_add') }}" method="post">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Add Channel</h5>
+      <div class="modal-content" style="border-radius:8px;border:1px solid var(--border-default)">
+        <div class="modal-header" style="border-bottom:1px solid var(--border-hairline)">
+          <h5 class="modal-title" style="font-family:var(--font-display);font-weight:700;font-size:1.2rem;color:var(--color-navy)">
+            Add Channel
+          </h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
           <div class="mb-3">
-            <label class="form-label">TVG ID <span class="text-danger">*</span></label>
+            <label class="form-label">TVG ID <span class="req">*</span></label>
             <input type="text" name="tvg_id" class="form-control" placeholder="e.g. abc.brisbane" required>
             <div class="form-text">Unique identifier used to match schedule files.</div>
           </div>
           <div class="mb-3">
-            <label class="form-label">Display Name <span class="text-danger">*</span></label>
+            <label class="form-label">Display Name <span class="req">*</span></label>
             <input type="text" name="name" class="form-control" placeholder="e.g. ABC Radio Brisbane" required>
           </div>
           <div class="mb-3">
-            <label class="form-label">Stream URL <span class="text-danger">*</span></label>
+            <label class="form-label">Stream URL <span class="req">*</span></label>
             <input type="url" name="url" class="form-control" placeholder="http://..." required>
           </div>
           <div class="mb-3">
@@ -124,8 +145,8 @@
             </div>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <div class="modal-footer" style="background:var(--color-ivory);border-top:1px solid var(--border-hairline)">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
           <button type="submit" class="btn btn-primary">Add Channel</button>
         </div>
       </div>
@@ -142,7 +163,7 @@ function toggleChannel(tvgId, checkbox) {
     .then(d => {
       checkbox.checked = d.enabled;
       const row = document.getElementById('row-' + tvgId.replace(/\./g, '_'));
-      row.classList.toggle('text-muted', !d.enabled);
+      if (row) row.style.opacity = d.enabled ? '' : '.5';
       showToast(d.enabled ? 'Channel enabled' : 'Channel disabled',
                 d.enabled ? 'success' : 'secondary');
     });

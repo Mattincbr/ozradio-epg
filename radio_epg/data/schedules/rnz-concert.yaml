@@ -1,0 +1,66 @@
+_meta:
+  id: rnz-concert
+  display_name: "RNZ Concert"
+  description: "Radio New Zealand Concert — classical music, opera and arts."
+  country: NZ
+  match:
+    - "rnz concert"
+    - "radio nz concert"
+    - "concert fm"
+    - "concert radio nz"
+
+channel:
+  id: rnz-concert
+  name: "RNZ Concert"
+  timezone: "Pacific/Auckland"
+  website: "https://www.rnz.co.nz/concert"
+
+schedule:
+  weekdays:
+    - start: "00:00"
+      title: "Concert Overnight"
+      description: "Classical music through the night."
+    - start: "06:00"
+      title: "Concert Mornings"
+      description: "Classical and chamber music to start the day."
+      url: "https://www.rnz.co.nz/concert/programmes/concertmornings"
+    - start: "12:00"
+      title: "Midday Concert"
+    - start: "14:00"
+      title: "Afternoons on Concert"
+      description: "Classical music through the afternoon."
+    - start: "17:00"
+      title: "The Shed"
+      description: "New Zealand music and recordings."
+    - start: "19:00"
+      title: "Evening Concert"
+      description: "Orchestral and chamber works from around the world."
+    - start: "22:00"
+      title: "Late Night Concert"
+
+  saturday:
+    - start: "00:00"
+      title: "Concert Overnight"
+    - start: "06:00"
+      title: "Weekend Concert Mornings"
+    - start: "12:00"
+      title: "Saturday Matinee"
+    - start: "19:00"
+      title: "Saturday Evening Concert"
+    - start: "22:00"
+      title: "Late Night Concert"
+
+  sunday:
+    - start: "00:00"
+      title: "Concert Overnight"
+    - start: "06:00"
+      title: "Weekend Concert Mornings"
+    - start: "10:00"
+      title: "Sunday Choral"
+      description: "Choral and sacred music for Sunday morning."
+    - start: "12:00"
+      title: "Sunday Matinee"
+    - start: "19:00"
+      title: "Sunday Evening Concert"
+    - start: "22:00"
+      title: "Late Night Concert"

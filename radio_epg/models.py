@@ -30,6 +30,8 @@ class TimeSlot:
     description: str = ""
     presenter: str = ""
     duration: Optional[int] = None   # minutes; if None, runs until next slot
+    image: Optional[str] = None      # programme artwork URL
+    url: Optional[str] = None        # episode library / catch-up page URL
 
 
 @dataclass
@@ -75,6 +77,7 @@ class Programme:
     description: str = ""
     presenter: str = ""
     image: Optional[str] = None
+    url: Optional[str] = None        # episode library / catch-up page URL
 
 
 @dataclass

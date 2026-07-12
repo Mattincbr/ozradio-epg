@@ -1,0 +1,72 @@
+_meta:
+  id: abc-local-adelaide
+  display_name: "ABC Radio Adelaide (891)"
+  description: "ABC Local Radio for Adelaide and South Australia."
+  country: AU
+  match:
+    - "abc adelaide"
+    - "abc 891"
+    - "891 abc"
+    - "891abc"
+    - "abc local adelaide"
+    - "abc radio adelaide"
+    - "abc sa"
+
+channel:
+  id: abc-local-adelaide
+  name: "ABC Radio Adelaide"
+  timezone: "Australia/Adelaide"
+  website: "https://www.abc.net.au/adelaide"
+
+schedule:
+  weekdays:
+    - start: "00:00"
+      title: "Overnight"
+    - start: "05:30"
+      title: "AM"
+    - start: "06:00"
+      title: "Breakfast"
+      description: "Adelaide's morning news, weather and community conversation."
+    - start: "09:00"
+      title: "Mornings"
+      description: "Talkback and local stories from South Australia."
+    - start: "12:00"
+      title: "The World Today"
+    - start: "12:30"
+      title: "Afternoons"
+    - start: "15:00"
+      title: "Drive"
+    - start: "18:00"
+      title: "PM"
+    - start: "18:30"
+      title: "Evening"
+    - start: "22:00"
+      title: "Nightlife"
+
+  saturday:
+    - start: "00:00"
+      title: "Overnight"
+    - start: "06:00"
+      title: "Saturday Breakfast"
+    - start: "09:00"
+      title: "Weekend Mornings"
+    - start: "12:00"
+      title: "Grandstand"
+    - start: "18:00"
+      title: "Saturday Evening"
+    - start: "22:00"
+      title: "Nightlife"
+
+  sunday:
+    - start: "00:00"
+      title: "Overnight"
+    - start: "06:00"
+      title: "Sunday Breakfast"
+    - start: "09:00"
+      title: "Sunday Mornings"
+    - start: "12:00"
+      title: "Grandstand"
+    - start: "18:00"
+      title: "Sunday Evening"
+    - start: "22:00"
+      title: "Nightlife"

@@ -1,0 +1,60 @@
+_meta:
+  id: abc-jazz
+  display_name: "ABC Jazz"
+  description: "Continuous jazz, blues and soul from the ABC."
+  country: AU
+  match:
+    - "abc jazz"
+    - "abcjazz"
+    - "jazz radio abc"
+
+channel:
+  id: abc-jazz
+  name: "ABC Jazz"
+  timezone: "Australia/Sydney"
+  website: "https://www.abc.net.au/listen/abc-jazz"
+
+schedule:
+  weekdays:
+    - start: "00:00"
+      title: "Jazz Overnight"
+      description: "Jazz, blues and soul through the night."
+    - start: "06:00"
+      title: "Morning Jazz"
+      description: "Cool and contemporary jazz to start your day."
+    - start: "09:00"
+      title: "Mid-Morning Jazz"
+      description: "Classic and contemporary jazz through the morning."
+    - start: "12:00"
+      title: "Lunchtime Jazz"
+    - start: "14:00"
+      title: "Afternoon Jazz"
+    - start: "18:00"
+      title: "Evening Jazz"
+      description: "Laid-back jazz and blues for the evening."
+    - start: "22:00"
+      title: "Late Night Jazz"
+
+  saturday:
+    - start: "00:00"
+      title: "Jazz Overnight"
+    - start: "06:00"
+      title: "Weekend Morning Jazz"
+    - start: "10:00"
+      title: "Weekend Jazz"
+    - start: "18:00"
+      title: "Saturday Evening Jazz"
+    - start: "22:00"
+      title: "Late Night Jazz"
+
+  sunday:
+    - start: "00:00"
+      title: "Jazz Overnight"
+    - start: "06:00"
+      title: "Weekend Morning Jazz"
+    - start: "10:00"
+      title: "Weekend Jazz"
+    - start: "18:00"
+      title: "Sunday Evening Jazz"
+    - start: "22:00"
+      title: "Late Night Jazz"

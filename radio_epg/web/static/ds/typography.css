@@ -1,0 +1,95 @@
+/* LadsCorp — Type scale + semantic text styles */
+
+:root {
+  /* ---- Scale (px, 1920x1080-friendly but usable at any size via rem) ---- */
+  --text-eyebrow: 15px;
+  --text-body-sm: 16px;
+  --text-body: 18px;
+  --text-body-lg: 21px;
+  --text-h4: 26px;
+  --text-h3: 34px;
+  --text-h2: 48px;
+  --text-h1: 68px;
+  --text-display: 96px;
+
+  --leading-tight: 1.08;
+  --leading-heading: 1.18;
+  --leading-body: 1.55;
+
+  --tracking-eyebrow: 0.12em;
+  --tracking-heading: -0.01em;
+}
+
+/* Semantic text styles — reusable classes for docs/specimens.
+   Components should use these tokens directly rather than re-declaring font stacks. */
+.type-display {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display-black);
+  font-size: var(--text-display);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-heading);
+  color: var(--text-heading);
+}
+.type-h1 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display-bold);
+  font-size: var(--text-h1);
+  line-height: var(--leading-tight);
+  letter-spacing: var(--tracking-heading);
+  color: var(--text-heading);
+}
+.type-h2 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display-bold);
+  font-size: var(--text-h2);
+  line-height: var(--leading-heading);
+  color: var(--text-heading);
+}
+.type-h3 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-display-bold);
+  font-size: var(--text-h3);
+  line-height: var(--leading-heading);
+  color: var(--text-heading);
+}
+.type-h4 {
+  font-family: var(--font-body);
+  font-weight: var(--weight-body-bold);
+  font-size: var(--text-h4);
+  line-height: var(--leading-heading);
+  color: var(--text-heading);
+}
+.type-eyebrow {
+  font-family: var(--font-descriptor);
+  font-weight: var(--weight-descriptor-light);
+  font-size: var(--text-eyebrow);
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--text-accent);
+}
+.type-descriptor {
+  font-family: var(--font-descriptor);
+  font-weight: var(--weight-descriptor-light);
+  font-size: var(--text-body-lg);
+  line-height: var(--leading-body);
+  color: var(--text-muted);
+}
+.type-body {
+  font-family: var(--font-body);
+  font-weight: var(--weight-body-regular);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--text-primary);
+}
+.type-body-sm {
+  font-family: var(--font-body);
+  font-weight: var(--weight-body-regular);
+  font-size: var(--text-body-sm);
+  line-height: var(--leading-body);
+  color: var(--text-primary);
+}
+.type-casual {
+  font-family: var(--font-casual);
+  font-weight: 400;
+  color: var(--text-accent);
+}

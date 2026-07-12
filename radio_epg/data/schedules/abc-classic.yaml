@@ -1,0 +1,74 @@
+_meta:
+  id: abc-classic
+  display_name: "ABC Classic"
+  description: "Australia's classical music network — concerts, opera, jazz and more"
+  country: AU
+  notes: "Time blocks are stable. Program names within blocks may vary by season."
+  match:
+    - "abc classic"
+    - "classic fm"
+    - "abc classic fm"
+    - "abcclassic"
+
+channel:
+  id: abc-classic
+  name: "ABC Classic"
+  timezone: "Australia/Sydney"
+
+schedule:
+  weekdays:
+    - start: "06:00"
+      title: "ABC Classic Breakfast"
+      description: "Start your morning with classical music and the day's cultural news."
+    - start: "10:00"
+      title: "ABC Classic Mornings"
+      description: "Mid-morning classical — orchestral, chamber and vocal music."
+    - start: "13:00"
+      title: "ABC Classic Afternoons"
+      description: "A broad mix of classical repertoire through the afternoon."
+    - start: "17:00"
+      title: "ABC Classic Drive"
+      description: "Classical music for the commute home."
+    - start: "20:00"
+      title: "ABC Classic Evenings"
+      description: "Concert recordings and chamber music for the evening."
+    - start: "22:00"
+      title: "ABC Classic After Dark"
+      description: "Late-night classical — gentle and reflective."
+    - start: "00:00"
+      title: "ABC Classic Overnight"
+
+  saturday:
+    - start: "07:00"
+      title: "ABC Classic Breakfast"
+    - start: "10:00"
+      title: "Classic Weekend"
+      description: "A relaxed Saturday morning mix of classical favourites."
+    - start: "13:00"
+      title: "Classic Afternoons"
+    - start: "17:00"
+      title: "Classic Drive"
+    - start: "20:00"
+      title: "ABC Classic Performance"
+      description: "Live and recorded concert performances."
+    - start: "22:00"
+      title: "Classic After Dark"
+    - start: "00:00"
+      title: "Overnight"
+
+  sunday:
+    - start: "08:00"
+      title: "Sunday Morning"
+      description: "A reflective classical music programme for Sunday mornings."
+    - start: "11:00"
+      title: "Classic Weekend"
+    - start: "13:00"
+      title: "Classic Afternoons"
+    - start: "17:00"
+      title: "Classic Drive"
+    - start: "20:00"
+      title: "ABC Classic Performance"
+    - start: "22:00"
+      title: "Classic After Dark"
+    - start: "00:00"
+      title: "Overnight"

@@ -1,0 +1,70 @@
+_meta:
+  id: triple-m-brisbane
+  display_name: "Triple M Brisbane (104.5)"
+  description: "Triple M Brisbane — rock, sport and entertainment for blokes and their mates."
+  country: AU
+  match:
+    - "triple m brisbane"
+    - "triple m 104"
+    - "104.5 triple m"
+    - "mmm brisbane"
+    - "triplem brisbane"
+
+channel:
+  id: triple-m-brisbane
+  name: "Triple M Brisbane"
+  timezone: "Australia/Brisbane"
+  website: "https://www.triplem.com.au/brisbane"
+
+schedule:
+  weekdays:
+    - start: "00:00"
+      title: "Mick Molloy Overnight"
+      description: "Classic rock and comedy through the night."
+    - start: "06:00"
+      title: "Moonman in the Morning"
+      description: "Triple M Breakfast — rock, laughs and sport with Moonman."
+      url: "https://www.triplem.com.au/brisbane/shows/moonman-in-the-morning"
+    - start: "09:00"
+      title: "Grill Team"
+      description: "Morning entertainment, sport and rock."
+    - start: "12:00"
+      title: "Midday with Wil Anderson"
+      description: "Rock and laughs through lunch."
+    - start: "16:00"
+      title: "Rush Hour"
+      description: "Drive home with the best classic rock and sport."
+    - start: "19:00"
+      title: "Triple M Evenings"
+    - start: "22:00"
+      title: "Triple M Late"
+      description: "Rock classics through the night."
+
+  saturday:
+    - start: "00:00"
+      title: "Triple M Overnight"
+    - start: "06:00"
+      title: "Saturday Morning Rock"
+    - start: "10:00"
+      title: "Saturday Sport"
+      description: "AFL, NRL and sport coverage."
+    - start: "14:00"
+      title: "Saturday Afternoon"
+    - start: "19:00"
+      title: "Saturday Night"
+    - start: "22:00"
+      title: "Triple M Late"
+
+  sunday:
+    - start: "00:00"
+      title: "Triple M Overnight"
+    - start: "06:00"
+      title: "Sunday Morning Rock"
+    - start: "10:00"
+      title: "Sunday Sport"
+    - start: "14:00"
+      title: "Sunday Afternoon"
+    - start: "19:00"
+      title: "Sunday Night"
+    - start: "22:00"
+      title: "Triple M Late"

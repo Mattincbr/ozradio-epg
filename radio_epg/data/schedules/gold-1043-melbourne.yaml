@@ -1,0 +1,67 @@
+_meta:
+  id: gold-1043-melbourne
+  display_name: "Gold 104.3 Melbourne"
+  description: "Gold 104.3 — Melbourne's greatest hits from the 80s, 90s and today."
+  country: AU
+  match:
+    - "gold 104.3"
+    - "gold104"
+    - "gold melbourne"
+    - "104.3 gold"
+    - "gold fm melbourne"
+
+channel:
+  id: gold-1043-melbourne
+  name: "Gold 104.3"
+  timezone: "Australia/Melbourne"
+  website: "https://www.gold1043.com.au"
+
+schedule:
+  weekdays:
+    - start: "00:00"
+      title: "Gold Overnight"
+    - start: "06:00"
+      title: "Breakfast with Christian O'Connell"
+      description: "Gold Breakfast — Melbourne's favourite morning show with pop classics and celebrity chat."
+      url: "https://www.gold1043.com.au/shows/breakfast"
+    - start: "09:00"
+      title: "Mid-Morning Gold"
+      description: "The hits you love through the morning."
+    - start: "12:00"
+      title: "Lunchtime Legends"
+      description: "The greatest hits at lunchtime."
+    - start: "16:00"
+      title: "Gold Drive"
+      description: "80s, 90s and more for your drive home."
+    - start: "19:00"
+      title: "Gold Evenings"
+    - start: "22:00"
+      title: "Gold Late"
+
+  saturday:
+    - start: "00:00"
+      title: "Gold Overnight"
+    - start: "06:00"
+      title: "Saturday Morning Gold"
+    - start: "10:00"
+      title: "Weekend Gold"
+    - start: "16:00"
+      title: "Saturday Afternoon"
+    - start: "19:00"
+      title: "Saturday Night Gold"
+    - start: "22:00"
+      title: "Gold Late"
+
+  sunday:
+    - start: "00:00"
+      title: "Gold Overnight"
+    - start: "06:00"
+      title: "Sunday Morning Gold"
+    - start: "10:00"
+      title: "Weekend Gold"
+    - start: "16:00"
+      title: "Sunday Afternoon"
+    - start: "19:00"
+      title: "Sunday Night Gold"
+    - start: "22:00"
+      title: "Gold Late"

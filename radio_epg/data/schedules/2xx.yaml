@@ -1,0 +1,78 @@
+_meta:
+  id: 2xx
+  display_name: "2XX FM Canberra (98.3 FM)"
+  description: "2XX — Canberra's independent community radio station. Alternative music, local arts and community programming since 1976."
+  country: AU
+  notes: "2XX is a volunteer-run community station with a rotating grid of specialist shows. Verify current schedule at https://www.2xx.org.au/programs — individual show times change frequently."
+  match:
+    - "2xx"
+    - "2xx fm"
+    - "2xxfm"
+    - "98.3 canberra"
+    - "community radio canberra"
+    - "2xx canberra"
+
+channel:
+  id: 2xx
+  name: "2XX FM"
+  timezone: "Australia/Sydney"
+  website: "https://www.2xx.org.au"
+
+schedule:
+  weekdays:
+    - start: "00:00"
+      title: "2XX Overnight"
+      description: "Automated overnight music."
+    - start: "06:00"
+      title: "Breakfast"
+      description: "Community breakfast — Canberra news, politics and alternative music."
+      url: "https://www.2xx.org.au/programs"
+    - start: "09:00"
+      title: "Morning Shows"
+      description: "Specialist music and community programs."
+      url: "https://www.2xx.org.au/programs"
+    - start: "12:00"
+      title: "Lunchtime Programming"
+      description: "Midday community and music programs."
+    - start: "14:00"
+      title: "Afternoon Shows"
+      description: "Afternoon genre music shows."
+    - start: "17:00"
+      title: "Drive"
+      description: "Canberra community afternoon drive."
+    - start: "19:00"
+      title: "Evening Shows"
+      description: "Evening specialist music shows and community programming."
+    - start: "22:00"
+      title: "Late Night"
+      description: "Late night alternative and underground music."
+
+  saturday:
+    - start: "00:00"
+      title: "2XX Overnight"
+    - start: "07:00"
+      title: "Saturday Morning"
+    - start: "09:00"
+      title: "Saturday Shows"
+      description: "Weekend community and specialist music programming."
+    - start: "12:00"
+      title: "Saturday Afternoon"
+    - start: "17:00"
+      title: "Saturday Evening"
+    - start: "22:00"
+      title: "Saturday Late Night"
+
+  sunday:
+    - start: "00:00"
+      title: "2XX Overnight"
+    - start: "07:00"
+      title: "Sunday Morning"
+      description: "Multicultural and community programming."
+    - start: "09:00"
+      title: "Sunday Shows"
+    - start: "12:00"
+      title: "Sunday Afternoon"
+    - start: "17:00"
+      title: "Sunday Evening"
+    - start: "22:00"
+      title: "Sunday Late Night"

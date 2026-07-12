@@ -1,0 +1,21 @@
+/* LadsCorp — Webfonts
+   Brand spec calls for Playfair Display Bold (wordmark), Raleway Light (endorsements/
+   descriptors), Lato (body) and Pacifico (casual sub-brand accent). No font binaries were
+   supplied with the brand brief, so these are loaded from Google Fonts — same families,
+   nearest-available weights. Flagged in readme.md; swap for licensed binaries if/when
+   provided (replace this @import with local @font-face + url() rules, same var names). */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Raleway:wght@300;400;600&family=Lato:wght@400;700&family=Pacifico&display=swap');
+
+:root {
+  --font-display: 'Playfair Display', Georgia, 'Times New Roman', serif;   /* wordmark, big headlines */
+  --font-descriptor: 'Raleway', 'Helvetica Neue', Arial, sans-serif;        /* endorsements, eyebrows, labels */
+  --font-body: 'Lato', 'Helvetica Neue', Arial, sans-serif;                 /* body copy, UI */
+  --font-casual: 'Pacifico', cursive;                                      /* sub-brand accent marks only — sparingly */
+
+  --weight-descriptor-light: 300;
+  --weight-body-regular: 400;
+  --weight-body-bold: 700;
+  --weight-display-bold: 700;
+  --weight-display-black: 800;
+}

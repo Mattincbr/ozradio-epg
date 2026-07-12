@@ -1,0 +1,77 @@
+_meta:
+  id: triplej
+  display_name: "triple j"
+  description: "Australia's national youth radio network — music, news and culture"
+  country: AU
+  notes: "Slot times are stable; presenter names change annually. Verify current hosts."
+  match:
+    - "triple j"
+    - "triplej"
+    - "triple-j"
+    - "tripj"
+
+channel:
+  id: triplej
+  name: "triple j"
+  timezone: "Australia/Sydney"
+
+schedule:
+  weekdays:
+    - start: "05:30"
+      title: "triple j Breakfast"
+      description: "Kick off the day with new music, interviews and the morning news."
+    - start: "09:00"
+      title: "triple j Mornings"
+      description: "The best mix of new and classic tracks through the morning."
+    - start: "12:00"
+      title: "triple j Midday"
+      description: "Lunchtime music and listener requests."
+    - start: "14:00"
+      title: "triple j Afternoons"
+      description: "New releases and deep cuts through the afternoon."
+    - start: "16:00"
+      title: "triple j Drive"
+      description: "Music to drive home to — new tracks, classics and the odd classic."
+    - start: "17:30"
+      title: "Hack"
+      description: "Daily current affairs for young Australians — news that matters."
+    - start: "18:00"
+      title: "Good Nights"
+      description: "Evenings on triple j — music and conversation."
+    - start: "22:00"
+      title: "The Night Show"
+      description: "Late night music — new, weird and wonderful."
+
+  saturday:
+    - start: "06:00"
+      title: "triple j Weekends"
+      description: "Start your Saturday with the best new music."
+    - start: "09:00"
+      title: "Saturday Mornings"
+      description: "New music and features through the morning."
+    - start: "12:00"
+      title: "Saturday Midday"
+    - start: "14:00"
+      title: "Saturday Arvos"
+      description: "Music to soundtrack your afternoon."
+    - start: "18:00"
+      title: "Saturday Nights"
+      description: "Triple j Saturday — specialty shows and new music."
+    - start: "22:00"
+      title: "The Night Show"
+
+  sunday:
+    - start: "06:00"
+      title: "triple j Weekends"
+    - start: "09:00"
+      title: "Sunday Mornings"
+    - start: "12:00"
+      title: "The J Files"
+      description: "A deep dive into the back catalogue of a legendary artist or genre."
+    - start: "14:00"
+      title: "Sunday Arvos"
+    - start: "18:00"
+      title: "Sunday Nights"
+      description: "Specialty music programming — roots, metal, electronic and more."
+    - start: "22:00"
+      title: "The Night Show"

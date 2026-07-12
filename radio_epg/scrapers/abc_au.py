@@ -2,14 +2,12 @@
 
 Supports URLs of the form:
     https://www.abc.net.au/{city}/station-epg
-    https://www.abc.net.au/radio/brisbane/programs (alternative path)
+    https://www.abc.net.au/radio/{city}/programs
 
-The ABC site renders EPG data in two ways depending on the page:
-  1. Embedded JSON in a <script id="__NEXT_DATA__"> tag (Next.js SSR)
-  2. An undocumented JSON API endpoint that the page XHRs
-
-We try the API endpoint first, then fall back to parsing __NEXT_DATA__,
-and finally fall back to HTML parsing.
+Tries multiple strategies in order:
+  1. ABC internal JSON API (several known endpoint variants)
+  2. __NEXT_DATA__ embedded JSON (recursive search)
+  3. Raw HTML parsing
 """
 
 from __future__ import annotations
@@ -24,87 +22,140 @@ from ..models import DaySchedule, TimeSlot, WeeklySchedule
 from .base import BaseScraper, ScraperError
 
 
-# ABC internal API used by the EPG page
-_ABC_API = "https://www.abc.net.au/api/public/programmes/station/{station_id}"
+_ABC_API_PATTERNS = [
+    # ABC Listen guide API (current as of 2024+)
+    "https://www.abc.net.au/api/listen/windows/radio/guide?station={slug}",
+    "https://www.abc.net.au/api/listen/radio/schedule/{slug}",
+    # Legacy endpoints (kept as fallbacks)
+    "https://www.abc.net.au/api/public/programmes/station/{slug}",
+    "https://www.abc.net.au/api/radio/schedule/{slug}",
+    "https://www.abc.net.au/radio/{slug}/programs.json",
+]
+
 _STATION_TIMEZONE: dict[str, str] = {
-    "brisbane":   "Australia/Brisbane",
-    "sydney":     "Australia/Sydney",
-    "melbourne":  "Australia/Melbourne",
-    "perth":      "Australia/Perth",
-    "adelaide":   "Australia/Adelaide",
-    "hobart":     "Australia/Hobart",
-    "darwin":     "Australia/Darwin",
-    "canberra":   "Australia/Sydney",
-    "newcastle":  "Australia/Sydney",
-    "wollongong": "Australia/Sydney",
-    "goldcoast":  "Australia/Brisbane",
-    "sunshine":   "Australia/Brisbane",
-    "tropical":   "Australia/Brisbane",
-    "northwest":  "Australia/Perth",
-    "great":      "Australia/Perth",
-    "ballarat":   "Australia/Melbourne",
-    "bendigo":    "Australia/Melbourne",
-    "gippsland":  "Australia/Melbourne",
-    "shepparton": "Australia/Melbourne",
+    # City-based local stations
+    "brisbane":      "Australia/Brisbane",
+    "sydney":        "Australia/Sydney",
+    "melbourne":     "Australia/Melbourne",
+    "perth":         "Australia/Perth",
+    "adelaide":      "Australia/Adelaide",
+    "hobart":        "Australia/Hobart",
+    "darwin":        "Australia/Darwin",
+    "canberra":      "Australia/Sydney",
+    "newcastle":     "Australia/Sydney",
+    "wollongong":    "Australia/Sydney",
+    "goldcoast":     "Australia/Brisbane",
+    "sunshine":      "Australia/Brisbane",
+    "tropical":      "Australia/Brisbane",
+    "northwest":     "Australia/Perth",
+    "great":         "Australia/Perth",
+    "ballarat":      "Australia/Melbourne",
+    "bendigo":       "Australia/Melbourne",
+    "gippsland":     "Australia/Melbourne",
+    "shepparton":    "Australia/Melbourne",
+    # National network slugs (from /listen/{slug}/guide URLs)
+    "radionational": "Australia/Sydney",
+    "triplej":       "Australia/Sydney",
+    "classic":       "Australia/Sydney",
+    "doublej":       "Australia/Sydney",
+    "newsradio":     "Australia/Sydney",
+    "kidslisten":    "Australia/Sydney",
+    "jazz":          "Australia/Sydney",
+    "country":       "Australia/Sydney",
+    "aboriginal":    "Australia/Sydney",
+}
+
+# Pretty display names for /listen/ network slugs
+_LISTEN_DISPLAY_NAMES: dict[str, str] = {
+    "radionational": "ABC Radio National",
+    "triplej":       "triple j",
+    "classic":       "ABC Classic",
+    "doublej":       "Double J",
+    "newsradio":     "ABC NewsRadio",
+    "kidslisten":    "ABC Kids Listen",
+    "jazz":          "ABC Jazz",
+    "country":       "ABC Country",
+    "aboriginal":    "ABC Indigenous",
 }
 
 _DAY_NAMES = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+
+# Keys in a programme object that likely hold a start time
+_START_KEYS = ("startTime", "start", "broadcastDateTime", "broadcast_time", "air_time",
+               "scheduledStart", "scheduled_start", "timeFrom", "time_from", "publishedDate")
+_TITLE_KEYS = ("title", "programName", "name", "program_name", "programTitle", "program_title")
+_END_KEYS   = ("endTime", "end", "scheduledEnd", "scheduled_end", "timeTo", "time_to")
+_DESC_KEYS  = ("synopsis", "description", "shortSynopsis", "short_synopsis", "summary", "body",
+               "longSynopsis", "long_synopsis")
+# Image: both direct-URL keys and nested-object keys
+_IMAGE_DIRECT_KEYS = ("imageUrl", "thumbnailUrl", "thumbnail_url", "image_url",
+                      "artworkUrl", "artwork_url", "tileImageUrl")
+_IMAGE_OBJ_KEYS    = ("image", "thumbnail", "artwork", "coverImage", "cover",
+                      "tile", "tileImage", "keyArtwork", "squareImage")
+_HOST_KEYS  = ("presenter", "presenterName", "host", "talent", "presenter_name")
 
 
 class ABCScraper(BaseScraper):
     """Scraper for ABC Australia radio station EPG pages."""
 
     def scrape(self, url: str) -> WeeklySchedule:
-        """Scrape an ABC station EPG page and return a WeeklySchedule.
-
-        Tries three strategies in order:
-          1. ABC internal JSON API
-          2. __NEXT_DATA__ embedded JSON
-          3. Raw HTML table parsing
-        """
         station_slug = _extract_station_slug(url)
         timezone = _STATION_TIMEZONE.get(station_slug.lower(), "Australia/Sydney")
 
+        # Normalise URL: old station-epg URLs → new /radio/{slug}/programs
+        normalised_url = _normalise_abc_url(url, station_slug)
+
+        errors: list[str] = []
+
         for strategy in (self._try_api, self._try_next_data, self._try_html):
             try:
-                result = strategy(url, station_slug, timezone)
-                if result is not None:
+                result = strategy(normalised_url, station_slug, timezone)
+                if result is not None and result.days:
                     return result
-            except ScraperError:
-                raise
-            except Exception:
+            except Exception as exc:
+                errors.append(f"{strategy.__name__}: {exc}")
                 continue
 
-        raise ScraperError(f"All scraping strategies failed for {url}")
+        raise ScraperError(
+            f"All scraping strategies failed for {url}. Tried: "
+            + " | ".join(errors) if errors else f"No schedule data found at {url}"
+        )
 
     # ------------------------------------------------------------------
-    # Strategy 1: undocumented JSON API
+    # Strategy 1: undocumented JSON API (try several known endpoint forms)
     # ------------------------------------------------------------------
 
     def _try_api(self, url: str, slug: str, timezone: str) -> Optional[WeeklySchedule]:
-        station_id = _slug_to_station_id(slug)
-        api_url = _ABC_API.format(station_id=station_id)
-
-        resp = self.fetch(api_url, headers={"Accept": "application/json"})
-        data = resp.json()
-        return _parse_api_response(data, slug, timezone, source_url=url)
+        for pattern in _ABC_API_PATTERNS:
+            api_url = pattern.format(slug=slug)
+            try:
+                resp = self.fetch(api_url, headers={"Accept": "application/json"})
+                data = resp.json()
+                result = _parse_api_response(data, slug, timezone, source_url=url)
+                if result is not None:
+                    return result
+            except Exception:
+                continue
+        return None
 
     # ------------------------------------------------------------------
-    # Strategy 2: Next.js __NEXT_DATA__
+    # Strategy 2: Next.js __NEXT_DATA__ (recursive search)
     # ------------------------------------------------------------------
 
     def _try_next_data(self, url: str, slug: str, timezone: str) -> Optional[WeeklySchedule]:
         soup = self.fetch_soup(url)
         script = soup.find("script", id="__NEXT_DATA__")
-        if not script:
+        if not script or not script.string:
             return None
 
-        data = json.loads(script.string)
-        # Navigate into the page props — the path varies by ABC page version
-        programmes = _dig(data, "props", "pageProps", "programs") or \
-                     _dig(data, "props", "pageProps", "schedule") or \
-                     _dig(data, "props", "pageProps", "data", "programs")
+        try:
+            data = json.loads(script.string)
+        except json.JSONDecodeError:
+            return None
 
+        # Recursively search the entire __NEXT_DATA__ object for any array
+        # that looks like a list of programme dicts
+        programmes = _find_programme_list(data)
         if not programmes:
             return None
 
@@ -117,19 +168,25 @@ class ABCScraper(BaseScraper):
     def _try_html(self, url: str, slug: str, timezone: str) -> Optional[WeeklySchedule]:
         soup = self.fetch_soup(url)
 
-        # The ABC EPG page typically uses a tabbed/sectioned layout.
-        # Each day is labelled with a heading and a list of programme blocks.
+        # Also look for any <script type="application/json"> blocks
+        for script in soup.find_all("script", type="application/json"):
+            try:
+                data = json.loads(script.string or "")
+                programmes = _find_programme_list(data)
+                if programmes:
+                    result = _parse_programme_list(programmes, slug, timezone, source_url=url)
+                    if result and result.days:
+                        return result
+            except Exception:
+                continue
+
         days: dict[str, DaySchedule] = {}
 
-        # Look for day-labelled sections (h2/h3 containing a day name, or
-        # elements with data-day attributes)
         for day_name in _DAY_NAMES:
             slots = _scrape_day_slots(soup, day_name)
             if slots:
                 days[day_name] = DaySchedule(slots=slots)
 
-        # If we found no day-specific data, try reading a flat programme list
-        # and assume it represents a single weekday schedule
         if not days:
             flat = _scrape_flat_slots(soup)
             if flat:
@@ -138,13 +195,10 @@ class ABCScraper(BaseScraper):
         if not days:
             return None
 
-        # Collapse Monday–Friday into "weekdays" if they're identical
         days = _collapse_weekdays(days)
-
-        station_name = _slug_to_display_name(slug)
         return WeeklySchedule(
             channel_id=f"abc.{slug}",
-            channel_name=station_name,
+            channel_name=_slug_to_display_name(slug),
             timezone=timezone,
             source_url=url,
             days=days,
@@ -152,50 +206,43 @@ class ABCScraper(BaseScraper):
 
 
 # ---------------------------------------------------------------------------
-# Helpers — API / Next.js response parsing
+# API / JSON response parsing
 # ---------------------------------------------------------------------------
 
-def _parse_api_response(
-    data: dict,
-    slug: str,
-    timezone: str,
-    source_url: str,
-) -> Optional[WeeklySchedule]:
-    items = data.get("items") or data.get("programs") or []
+def _parse_api_response(data, slug: str, timezone: str, source_url: str) -> Optional[WeeklySchedule]:
+    if isinstance(data, list):
+        items = data
+    elif isinstance(data, dict):
+        items = (
+            data.get("items") or data.get("programs") or data.get("schedule") or
+            data.get("data") or []
+        )
+        if isinstance(items, dict):
+            # data.get("data") might be a nested dict
+            items = _find_programme_list(items) or []
+    else:
+        return None
+
     if not items:
         return None
     return _parse_programme_list(items, slug, timezone, source_url)
 
 
-def _parse_programme_list(
-    items: list,
-    slug: str,
-    timezone: str,
-    source_url: str,
-) -> WeeklySchedule:
-    """Build a WeeklySchedule from a flat list of programme dicts.
-
-    ABC programme dicts typically contain keys like:
-      - title / programName / name
-      - startTime / start / broadcastDateTime
-      - endTime / end
-      - synopsis / description / shortSynopsis
-      - presenter / presenterName
-    """
+def _parse_programme_list(items: list, slug: str, timezone: str, source_url: str) -> WeeklySchedule:
     day_slots: dict[str, list[TimeSlot]] = {d: [] for d in _DAY_NAMES}
 
     for item in items:
-        title = (
-            item.get("title") or item.get("programName") or item.get("name") or ""
-        ).strip()
+        if not isinstance(item, dict):
+            continue
+
+        title = _first(item, _TITLE_KEYS, "").strip()
         if not title:
             continue
 
-        raw_start = item.get("startTime") or item.get("start") or item.get("broadcastDateTime", "")
+        raw_start = _first(item, _START_KEYS, "")
         if not raw_start:
             continue
 
-        # Parse ISO 8601 datetime to extract weekday and HH:MM
         try:
             dt = _parse_iso(str(raw_start))
         except ValueError:
@@ -203,19 +250,20 @@ def _parse_programme_list(
 
         day_name = _DAY_NAMES[dt.weekday()]
 
-        raw_end = item.get("endTime") or item.get("end") or ""
+        raw_end = _first(item, _END_KEYS, "")
         duration: Optional[int] = None
         if raw_end:
             try:
                 end_dt = _parse_iso(str(raw_end))
-                duration = int((end_dt - dt).total_seconds() // 60)
+                diff = int((end_dt - dt).total_seconds())
+                if diff > 0:
+                    duration = diff // 60
             except ValueError:
                 pass
 
-        synopsis = (
-            item.get("synopsis") or item.get("description") or item.get("shortSynopsis") or ""
-        ).strip()
-        presenter = (item.get("presenter") or item.get("presenterName") or "").strip()
+        synopsis = _first(item, _DESC_KEYS, "").strip()
+        presenter = _first(item, _HOST_KEYS, "").strip()
+        image = _extract_image_url(item)
 
         slot = TimeSlot(
             start=dt.strftime("%H:%M"),
@@ -223,18 +271,14 @@ def _parse_programme_list(
             description=synopsis,
             presenter=presenter,
             duration=duration,
+            image=image,
         )
         day_slots[day_name].append(slot)
 
-    # Sort slots by start time within each day
-    for name, slots in day_slots.items():
+    for slots in day_slots.values():
         slots.sort(key=lambda s: s.start)
 
-    days = {
-        name: DaySchedule(slots=slots)
-        for name, slots in day_slots.items()
-        if slots
-    }
+    days = {name: DaySchedule(slots=slots) for name, slots in day_slots.items() if slots}
     days = _collapse_weekdays(days)
 
     return WeeklySchedule(
@@ -247,31 +291,75 @@ def _parse_programme_list(
 
 
 # ---------------------------------------------------------------------------
-# Helpers — HTML parsing
+# Recursive programme-list finder
+# ---------------------------------------------------------------------------
+
+def _find_programme_list(obj, _depth: int = 0) -> Optional[list]:
+    """Recursively search *obj* for an array that looks like programme dicts."""
+    if _depth > 8:
+        return None
+    if isinstance(obj, list):
+        if _looks_like_programmes(obj):
+            return obj
+        # Try each list element that is itself a dict/list
+        for item in obj[:5]:
+            result = _find_programme_list(item, _depth + 1)
+            if result:
+                return result
+    elif isinstance(obj, dict):
+        # Prefer known key names
+        for key in ("programs", "programme", "schedule", "schedules", "items",
+                    "slots", "shows", "broadcasts", "episodes"):
+            val = obj.get(key)
+            if isinstance(val, list) and _looks_like_programmes(val):
+                return val
+        # Recurse into all values
+        for val in obj.values():
+            if isinstance(val, (dict, list)):
+                result = _find_programme_list(val, _depth + 1)
+                if result:
+                    return result
+    return None
+
+
+def _looks_like_programmes(lst: list) -> bool:
+    """Heuristic: is this list likely a list of programme dicts?"""
+    if len(lst) < 2:
+        return False
+    sample = lst[:3]
+    hits = 0
+    for item in sample:
+        if not isinstance(item, dict):
+            return False
+        has_title = any(k in item for k in _TITLE_KEYS)
+        has_time = any(k in item for k in _START_KEYS)
+        if has_title and has_time:
+            hits += 1
+    return hits >= 1
+
+
+# ---------------------------------------------------------------------------
+# HTML parsing helpers
 # ---------------------------------------------------------------------------
 
 def _scrape_day_slots(soup, day_name: str) -> list[TimeSlot]:
-    """Find slots for a specific day in the BeautifulSoup tree."""
     slots: list[TimeSlot] = []
 
-    # Try data-day attributes
-    section = soup.find(attrs={"data-day": day_name}) or \
-              soup.find(attrs={"data-day": day_name.capitalize()})
+    section = (
+        soup.find(attrs={"data-day": day_name}) or
+        soup.find(attrs={"data-day": day_name.capitalize()}) or
+        soup.find(attrs={"data-weekday": day_name})
+    )
 
     if not section:
-        # Try heading that contains the day name
-        heading = soup.find(
-            re.compile(r"^h[2-4]$"),
-            string=re.compile(day_name, re.I)
-        )
+        heading = soup.find(re.compile(r"^h[2-4]$"), string=re.compile(day_name, re.I))
         if heading:
-            # Collect sibling/child programme items until the next heading
             section = heading.find_next_sibling()
 
     if not section:
         return slots
 
-    for item in section.find_all(class_=re.compile(r"program|schedule|slot", re.I)):
+    for item in section.find_all(class_=re.compile(r"program|schedule|slot|broadcast", re.I)):
         slot = _parse_programme_item(item)
         if slot:
             slots.append(slot)
@@ -280,9 +368,8 @@ def _scrape_day_slots(soup, day_name: str) -> list[TimeSlot]:
 
 
 def _scrape_flat_slots(soup) -> list[TimeSlot]:
-    """Last-resort: collect all programme-like elements from the page."""
     slots = []
-    for item in soup.find_all(class_=re.compile(r"program|schedule-item|programme", re.I)):
+    for item in soup.find_all(class_=re.compile(r"program|schedule-item|programme|broadcast", re.I)):
         slot = _parse_programme_item(item)
         if slot:
             slots.append(slot)
@@ -290,10 +377,10 @@ def _scrape_flat_slots(soup) -> list[TimeSlot]:
 
 
 def _parse_programme_item(el) -> Optional[TimeSlot]:
-    """Extract a TimeSlot from a single programme HTML element."""
-    # Time
-    time_el = el.find(class_=re.compile(r"time|start", re.I)) or \
-              el.find("time")
+    time_el = (
+        el.find(class_=re.compile(r"time|start", re.I)) or
+        el.find("time")
+    )
     if not time_el:
         return None
     time_text = (time_el.get("datetime") or time_el.get_text()).strip()
@@ -301,37 +388,29 @@ def _parse_programme_item(el) -> Optional[TimeSlot]:
     if not time_str:
         return None
 
-    # Title
-    title_el = el.find(class_=re.compile(r"title|name|heading", re.I)) or \
-               el.find(re.compile(r"^h[2-6]$"))
+    title_el = (
+        el.find(class_=re.compile(r"title|name|heading", re.I)) or
+        el.find(re.compile(r"^h[2-6]$"))
+    )
     if not title_el:
         return None
     title = title_el.get_text(strip=True)
     if not title:
         return None
 
-    # Description
-    desc_el = el.find(class_=re.compile(r"desc|synopsis|summary", re.I)) or \
-              el.find("p")
+    desc_el = el.find(class_=re.compile(r"desc|synopsis|summary", re.I)) or el.find("p")
     description = desc_el.get_text(strip=True) if desc_el else ""
 
-    # Presenter
     presenter_el = el.find(class_=re.compile(r"presenter|host|talent", re.I))
     presenter = presenter_el.get_text(strip=True) if presenter_el else ""
 
-    return TimeSlot(
-        start=time_str,
-        title=title,
-        description=description,
-        presenter=presenter,
-    )
+    return TimeSlot(start=time_str, title=title, description=description, presenter=presenter)
 
 
 _TIME_RE = re.compile(r"(\d{1,2}):(\d{2})")
 
 
 def _normalise_time(raw: str) -> str:
-    """Return "HH:MM" from various time string formats, or empty string."""
     m = _TIME_RE.search(raw)
     if m:
         return f"{int(m.group(1)):02d}:{m.group(2)}"
@@ -339,36 +418,56 @@ def _normalise_time(raw: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Helpers — misc
+# Misc helpers
 # ---------------------------------------------------------------------------
 
 def _extract_station_slug(url: str) -> str:
     parts = urlparse(url).path.strip("/").split("/")
-    # abc.net.au/{slug}/station-epg  or  abc.net.au/radio/{slug}/...
-    if parts and parts[0] == "radio" and len(parts) > 1:
+    # /listen/{slug}/guide  or  /radio/{slug}/...  or  /{slug}/station-epg
+    if parts and parts[0] in ("radio", "listen") and len(parts) > 1:
         return parts[1]
     return parts[0] if parts else "unknown"
 
 
-def _slug_to_station_id(slug: str) -> str:
-    # ABC internal IDs tend to be numeric; we expose the slug as-is for the API
-    # path and let the server resolve it.  Known slugs match URL paths directly.
-    return slug
+def _normalise_abc_url(url: str, slug: str) -> str:
+    """Rewrite old station-epg / programs URLs to the current /listen/{slug}/guide form."""
+    if "station-epg" in url or ("/radio/" in url and "/programs" in url):
+        return f"https://www.abc.net.au/listen/{slug}/guide"
+    return url
 
 
 def _slug_to_display_name(slug: str) -> str:
+    if slug in _LISTEN_DISPLAY_NAMES:
+        return _LISTEN_DISPLAY_NAMES[slug]
     return "ABC " + slug.replace("-", " ").title()
 
 
+def _extract_image_url(item: dict) -> Optional[str]:
+    """Extract a programme artwork URL from a programme dict, handling ABC's formats."""
+    # Try direct string URL keys first
+    for key in _IMAGE_DIRECT_KEYS:
+        val = item.get(key)
+        if val and isinstance(val, str) and val.startswith("http"):
+            return val
+    # Try nested object keys
+    for key in _IMAGE_OBJ_KEYS:
+        val = item.get(key)
+        if isinstance(val, dict):
+            for sub in ("url", "src", "href", "original", "large", "medium", "small"):
+                u = val.get(sub)
+                if u and isinstance(u, str) and u.startswith("http"):
+                    return u
+        elif isinstance(val, str) and val.startswith("http"):
+            return val
+    return None
+
+
 def _collapse_weekdays(days: dict[str, DaySchedule]) -> dict[str, DaySchedule]:
-    """Replace Monday-Friday entries with a single 'weekdays' key if they match."""
     weekday_keys = ["monday", "tuesday", "wednesday", "thursday", "friday"]
     present = [k for k in weekday_keys if k in days]
-
     if len(present) < 2:
         return days
 
-    # Compare slot lists by title+start — if identical across all present weekdays
     def key_slots(sched: DaySchedule):
         return [(s.start, s.title) for s in sched.slots]
 
@@ -377,12 +476,50 @@ def _collapse_weekdays(days: dict[str, DaySchedule]) -> dict[str, DaySchedule]:
         collapsed = {k: v for k, v in days.items() if k not in weekday_keys}
         collapsed["weekdays"] = days[present[0]]
         return collapsed
-
     return days
 
 
+def _first(d: dict, keys: tuple, default="") -> str:
+    for k in keys:
+        v = d.get(k)
+        if v is not None and str(v).strip():
+            return str(v)
+    return default
+
+
+def _parse_iso(s: str) -> datetime:
+    """Parse ISO 8601 datetime, compatible with Python 3.10."""
+    s = s.strip()
+
+    # Normalise Z suffix
+    if s.endswith("Z"):
+        s = s[:-1] + "+00:00"
+
+    # Truncate fractional seconds to 6 digits (Python 3.10 fromisoformat limit)
+    s = re.sub(r"(\.\d{6})\d+", r"\1", s)
+
+    try:
+        return datetime.fromisoformat(s)
+    except ValueError:
+        pass
+
+    # Try common strptime formats as last resort
+    for fmt in (
+        "%Y-%m-%dT%H:%M:%S%z",
+        "%Y-%m-%dT%H:%M:%S.%f%z",
+        "%Y-%m-%dT%H:%M:%S",
+        "%Y-%m-%dT%H:%M",
+        "%Y-%m-%d",
+    ):
+        try:
+            return datetime.strptime(s, fmt)
+        except ValueError:
+            continue
+
+    raise ValueError(f"Cannot parse datetime: {s!r}")
+
+
 def _dig(obj, *keys):
-    """Safely navigate nested dicts/lists."""
     for k in keys:
         if obj is None:
             return None
@@ -391,12 +528,3 @@ def _dig(obj, *keys):
         else:
             return None
     return obj
-
-
-def _parse_iso(s: str) -> datetime:
-    """Parse an ISO 8601 datetime string."""
-    # Python 3.11 handles most ISO 8601 variants natively
-    s = s.rstrip("Z")
-    if "+" not in s and len(s) > 10:
-        s += "+00:00"
-    return datetime.fromisoformat(s)

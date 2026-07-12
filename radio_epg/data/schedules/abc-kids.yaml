@@ -1,0 +1,68 @@
+_meta:
+  id: abc-kids
+  display_name: "ABC Kids Listen"
+  description: "Audio content for children — stories, music and educational programmes"
+  country: AU
+  notes: "Children's programming — content follows school-day patterns."
+  match:
+    - "abc kids"
+    - "kids listen"
+    - "abc kids listen"
+    - "abckids"
+    - "kinderling"
+
+channel:
+  id: abc-kids
+  name: "ABC Kids Listen"
+  timezone: "Australia/Sydney"
+
+schedule:
+  weekdays:
+    - start: "06:00"
+      title: "ABC Kids Breakfast"
+      description: "Wake-up stories, songs and gentle morning programming for little ones."
+    - start: "08:00"
+      title: "Morning Stories"
+      description: "Stories and audio adventures to start the school day."
+    - start: "09:00"
+      title: "Kids Mornings"
+      description: "Songs, stories and educational content through the morning."
+    - start: "12:00"
+      title: "Lunchtime Stories"
+      description: "Short stories and songs for lunchtime."
+    - start: "13:00"
+      title: "Afternoon Programs"
+      description: "Music, storytelling and gentle listening for the afternoon."
+    - start: "15:00"
+      title: "After School Stories"
+      description: "Stories and audio adventures for after school."
+    - start: "18:00"
+      title: "Dinner Time"
+      description: "Family-friendly content for the dinner hour."
+    - start: "19:00"
+      title: "Bedtime Stories"
+      description: "Calm, soothing stories to help children wind down."
+    - start: "20:00"
+      title: "Sleep Stories"
+      description: "Quiet, calming audio for bedtime."
+    - start: "00:00"
+      title: "Overnight"
+
+  weekend:
+    - start: "07:00"
+      title: "Weekend Morning Stories"
+      description: "Weekend wake-up stories and songs for kids."
+    - start: "09:00"
+      title: "Weekend Morning Programs"
+    - start: "12:00"
+      title: "Weekend Lunchtime"
+    - start: "14:00"
+      title: "Weekend Afternoon Stories"
+    - start: "17:00"
+      title: "Weekend Early Evening"
+    - start: "19:00"
+      title: "Bedtime Stories"
+    - start: "20:00"
+      title: "Sleep Stories"
+    - start: "00:00"
+      title: "Overnight"

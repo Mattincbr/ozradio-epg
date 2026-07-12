@@ -1,0 +1,43 @@
+_meta:
+  id: abc-newsradio
+  display_name: "ABC NewsRadio"
+  description: "Australia's rolling 24-hour news radio service"
+  country: AU
+  notes: "Continuous news service. Programs shown are content blocks, not distinct shows."
+  match:
+    - "abc newsradio"
+    - "newsradio"
+    - "abc news radio"
+    - "abc news 24"
+
+channel:
+  id: abc-newsradio
+  name: "ABC NewsRadio"
+  timezone: "Australia/Sydney"
+
+schedule:
+  default:
+    - start: "00:00"
+      title: "ABC NewsRadio Overnight"
+      description: "Continuous news and current affairs through the night."
+    - start: "05:00"
+      title: "ABC NewsRadio Early Morning"
+      description: "Morning news service — top stories, sport and weather."
+    - start: "08:00"
+      title: "ABC NewsRadio Morning"
+      description: "News, analysis and live crosses through the morning."
+    - start: "12:00"
+      title: "ABC NewsRadio Midday"
+      description: "Lunchtime news bulletin and current affairs."
+    - start: "14:00"
+      title: "ABC NewsRadio Afternoon"
+      description: "Afternoon news, interviews and live event coverage."
+    - start: "17:00"
+      title: "ABC NewsRadio Drive"
+      description: "Drive-time news and analysis."
+    - start: "19:00"
+      title: "ABC NewsRadio Evening"
+      description: "Evening news wrap and ongoing coverage."
+    - start: "22:00"
+      title: "ABC NewsRadio Late Night"
+      description: "Late news service including BBC World Service programmes."

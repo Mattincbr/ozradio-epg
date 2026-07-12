@@ -1,0 +1,72 @@
+_meta:
+  id: abc-local-perth
+  display_name: "ABC Radio Perth (720)"
+  description: "ABC Local Radio for Perth and Western Australia."
+  country: AU
+  match:
+    - "abc perth"
+    - "abc 720"
+    - "720 abc"
+    - "720abc"
+    - "abc local perth"
+    - "abc radio perth"
+    - "abc wa"
+
+channel:
+  id: abc-local-perth
+  name: "ABC Radio Perth"
+  timezone: "Australia/Perth"
+  website: "https://www.abc.net.au/perth"
+
+schedule:
+  weekdays:
+    - start: "00:00"
+      title: "Overnight"
+    - start: "05:30"
+      title: "AM"
+    - start: "06:00"
+      title: "Breakfast"
+      description: "Perth's morning news, weather and community conversation."
+    - start: "09:00"
+      title: "Mornings"
+      description: "Talkback and local stories."
+    - start: "12:00"
+      title: "The World Today"
+    - start: "12:30"
+      title: "Afternoons"
+    - start: "15:00"
+      title: "Drive"
+    - start: "18:00"
+      title: "PM"
+    - start: "18:30"
+      title: "Evening"
+    - start: "22:00"
+      title: "Nightlife"
+
+  saturday:
+    - start: "00:00"
+      title: "Overnight"
+    - start: "06:00"
+      title: "Saturday Breakfast"
+    - start: "09:00"
+      title: "Weekend Mornings"
+    - start: "12:00"
+      title: "Grandstand"
+    - start: "18:00"
+      title: "Saturday Evening"
+    - start: "22:00"
+      title: "Nightlife"
+
+  sunday:
+    - start: "00:00"
+      title: "Overnight"
+    - start: "06:00"
+      title: "Sunday Breakfast"
+    - start: "09:00"
+      title: "Sunday Mornings"
+    - start: "12:00"
+      title: "Grandstand"
+    - start: "18:00"
+      title: "Sunday Evening"
+    - start: "22:00"
+      title: "Nightlife"

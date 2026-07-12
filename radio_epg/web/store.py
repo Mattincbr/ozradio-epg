@@ -28,6 +28,12 @@ DEFAULT_SOURCES = [
         "url": "https://raw.githubusercontent.com/fhdm-dev/radio/master/pl/BBC%20(Non-UK).m3u",
         "description": "BBC radio stations accessible outside the UK",
     },
+    {
+        "id": "iprd_global",
+        "name": "IPRD Global Catalogue",
+        "url": "https://iprd-org.github.io/iprd/site_data/all_stations.m3u",
+        "description": "Internet Protocol Radio Directory — global station catalogue",
+    },
 ]
 
 
@@ -129,7 +135,14 @@ class Store:
             # First run: seed with defaults
             self._write("sources", {"sources": DEFAULT_SOURCES})
             return list(DEFAULT_SOURCES)
-        return data.get("sources", [])
+        sources = data.get("sources", [])
+        # Backfill any default sources added since first run
+        existing_ids = {s["id"] for s in sources}
+        added = [s for s in DEFAULT_SOURCES if s["id"] not in existing_ids]
+        if added:
+            sources = sources + added
+            self._write("sources", {"sources": sources})
+        return sources
 
     def save_sources(self, sources: list[dict]) -> None:
         self._write("sources", {"sources": sources})
@@ -160,6 +173,24 @@ class Store:
         if data is None:
             return None
         return data.get("channels", [])
+
+    # ------------------------------------------------------------------
+    # Settings (key-value)
+    # ------------------------------------------------------------------
+
+    def get_settings(self) -> dict:
+        return self._read("settings", {})
+
+    def save_settings(self, settings: dict) -> None:
+        self._write("settings", settings)
+
+    def get_setting(self, key: str, default=None):
+        return self.get_settings().get(key, default)
+
+    def set_setting(self, key: str, value) -> None:
+        s = self.get_settings()
+        s[key] = value
+        self.save_settings(s)
 
     # ------------------------------------------------------------------
     # Images metadata

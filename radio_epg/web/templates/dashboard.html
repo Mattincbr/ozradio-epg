@@ -2,7 +2,10 @@
 {% block title %}Dashboard{% endblock %}
 {% block content %}
 <div class="page-header">
-  <h1><i class="bi bi-grid me-2"></i>Dashboard</h1>
+  <div>
+    <div class="page-eyebrow">LadsCorp &middot; Far North Queensland</div>
+    <h1><i class="bi bi-grid me-2"></i>Dashboard</h1>
+  </div>
   <a href="{{ url_for('epg') }}" class="btn btn-primary">
     <i class="bi bi-file-earmark-code me-1"></i>Generate EPG
   </a>
@@ -12,21 +15,21 @@
 <div class="row g-3 mb-4">
   <div class="col-sm-4">
     <div class="stat-card">
-      <div class="stat-icon text-primary"><i class="bi bi-broadcast"></i></div>
+      <div class="stat-icon" style="color:var(--color-navy)"><i class="bi bi-broadcast"></i></div>
       <div class="stat-value">{{ channels|length }}</div>
       <div class="stat-label">Total Channels</div>
     </div>
   </div>
   <div class="col-sm-4">
     <div class="stat-card">
-      <div class="stat-icon text-success"><i class="bi bi-calendar-check"></i></div>
+      <div class="stat-icon" style="color:var(--color-slate-blue)"><i class="bi bi-calendar-check"></i></div>
       <div class="stat-value">{{ scheduled_count }}</div>
       <div class="stat-label">With Schedules</div>
     </div>
   </div>
   <div class="col-sm-4">
     <div class="stat-card">
-      <div class="stat-icon text-warning"><i class="bi bi-calendar-event"></i></div>
+      <div class="stat-icon" style="color:var(--color-gold)"><i class="bi bi-calendar-event"></i></div>
       <div class="stat-value">{{ override_count }}</div>
       <div class="stat-label">Overrides</div>
     </div>
@@ -34,12 +37,13 @@
 </div>
 
 <!-- Channel cards -->
-<div class="section-header d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-3">
   <h5 class="mb-0">Channels</h5>
   <a href="{{ url_for('playlist') }}" class="btn btn-sm btn-outline-primary">
     <i class="bi bi-plus-lg me-1"></i>Add Channels
   </a>
 </div>
+
 {% if channels %}
   <div class="row g-3 mb-4">
     {% for ch in channels %}
@@ -48,23 +52,21 @@
         <div class="channel-logo-wrap">
           {% set logo = channel_logo_url(ch) %}
           {% if logo %}
-            <img src="{{ logo }}" alt="{{ ch.name }}" class="channel-logo" onerror="this.src='/static/img/radio-placeholder.svg'">
+            <img src="{{ logo }}" alt="{{ ch.name }}" class="channel-logo"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="channel-logo-placeholder" style="display:none"><i class="bi bi-broadcast-pin"></i></div>
           {% else %}
             <div class="channel-logo-placeholder"><i class="bi bi-broadcast-pin"></i></div>
           {% endif %}
         </div>
         <div class="channel-card-body">
           <div class="channel-name" title="{{ ch.name }}">{{ ch.name }}</div>
-          <div class="channel-id text-muted small">{{ ch.tvg_id }}</div>
-          <div class="channel-badges mt-1">
+          <div class="channel-id">{{ ch.tvg_id }}</div>
+          <div class="mt-2">
             {% if has_schedule(ch.tvg_id) %}
-              <span class="badge bg-success-subtle text-success-emphasis">
-                <i class="bi bi-calendar-check"></i> Schedule
-              </span>
+              <span class="ls-badge ls-badge--sched"><i class="bi bi-calendar-check"></i> Schedule</span>
             {% else %}
-              <span class="badge bg-warning-subtle text-warning-emphasis">
-                <i class="bi bi-calendar-x"></i> No Schedule
-              </span>
+              <span class="ls-badge ls-badge--nosched"><i class="bi bi-calendar-x"></i> No Schedule</span>
             {% endif %}
           </div>
         </div>
@@ -94,7 +96,7 @@
 {% if upcoming_overrides %}
 <h5 class="mb-3">Upcoming Overrides</h5>
 <div class="table-responsive">
-  <table class="table table-sm table-hover">
+  <table class="table table-sm table-hover align-middle">
     <thead>
       <tr>
         <th>Date</th><th>Channel</th><th>Time</th><th>Title</th><th>Type</th>
@@ -104,16 +106,16 @@
       {% for ov in upcoming_overrides %}
       <tr>
         <td>{{ ov.date }}</td>
-        <td>{{ ov.channel_id }}</td>
-        <td>{{ ov.start }}–{{ ov.end }}</td>
-        <td>{{ ov.title }}</td>
+        <td><code>{{ ov.channel_id }}</code></td>
+        <td class="text-nowrap">{{ ov.start }}–{{ ov.end }}</td>
+        <td><strong>{{ ov.title }}</strong></td>
         <td>
           {% if ov.override_type == 'sports' %}
-            <span class="badge bg-success">Sports</span>
+            <span class="ls-badge ls-badge--sports"><i class="bi bi-trophy"></i> Sports</span>
           {% elif ov.override_type == 'cancellation' %}
-            <span class="badge bg-danger">Cancelled</span>
+            <span class="ls-badge" style="background:rgba(156,90,40,.15);color:var(--color-coral)">Cancelled</span>
           {% else %}
-            <span class="badge bg-primary">Event</span>
+            <span class="ls-badge ls-badge--sched"><i class="bi bi-calendar-event"></i> Event</span>
           {% endif %}
         </td>
       </tr>

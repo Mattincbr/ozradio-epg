@@ -1,0 +1,76 @@
+_meta:
+  id: 4bc
+  display_name: "4BC Brisbane"
+  description: "4BC — Brisbane's talk radio station covering news, sport and community affairs."
+  country: AU
+  notes: "Verify current schedule at https://www.4bc.com.au/shows/ as presenter lineups change."
+  match:
+    - "4bc"
+    - "4bc brisbane"
+    - "4bc talk"
+    - "nine radio brisbane"
+
+channel:
+  id: 4bc
+  name: "4BC"
+  timezone: "Australia/Brisbane"
+  website: "https://www.4bc.com.au"
+
+schedule:
+  weekdays:
+    - start: "00:00"
+      title: "4BC Overnight"
+      description: "News updates and overnight programming."
+    - start: "05:30"
+      title: "4BC Early"
+      description: "Early morning news and sport."
+    - start: "06:00"
+      title: "Breakfast with Neil Breen"
+      description: "Brisbane's #1 Breakfast show — hard news, topical debate and community conversation."
+      url: "https://www.4bc.com.au/shows/breakfast-with-neil-breen"
+    - start: "09:00"
+      title: "Mornings with Sofie Formica"
+      description: "Talkback, lifestyle and community conversation."
+      url: "https://www.4bc.com.au/shows/mornings-with-sofie-formica"
+    - start: "12:00"
+      title: "Afternoons with Scott Emerson"
+      description: "Topical debate and analysis."
+      url: "https://www.4bc.com.au/shows/afternoons-with-scott-emerson"
+    - start: "16:00"
+      title: "Drive with Oliver Peterson"
+      description: "Drive time news, sport and community."
+      url: "https://www.4bc.com.au/shows/drive-with-oliver-peterson"
+    - start: "19:00"
+      title: "Nights with Steve Price"
+      description: "Opinion and debate through the evening."
+    - start: "22:00"
+      title: "4BC Late"
+
+  saturday:
+    - start: "00:00"
+      title: "4BC Overnight"
+    - start: "06:00"
+      title: "Saturday Breakfast"
+    - start: "09:00"
+      title: "Saturday with Sofie Formica"
+    - start: "12:00"
+      title: "Sport Saturday"
+      description: "Live sport coverage and commentary — NRL, cricket and more."
+    - start: "18:00"
+      title: "Saturday Evening"
+    - start: "22:00"
+      title: "4BC Late"
+
+  sunday:
+    - start: "00:00"
+      title: "4BC Overnight"
+    - start: "06:00"
+      title: "Sunday Breakfast"
+    - start: "09:00"
+      title: "Sunday with Steve Price"
+    - start: "12:00"
+      title: "Sport Sunday"
+    - start: "18:00"
+      title: "Sunday Evening"
+    - start: "22:00"
+      title: "4BC Late"
