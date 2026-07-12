@@ -847,6 +847,29 @@ def register_routes(app: Flask) -> None:
         channels = [c for c in store().get_channels() if c.get("enabled", True)]
         return render_template("poster_studio.html", channels=channels)
 
+    @app.route("/api/poster-export", methods=["POST"])
+    def poster_export():
+        body = request.get_json(force=True, silent=True) or {}
+        template  = body.get("template",  "plate")
+        channel   = body.get("channel",   "Station")
+        daypart   = body.get("daypart",   "auto")
+        title     = body.get("title",     "Programme")
+        presenter = body.get("presenter", "")
+        t_start   = body.get("start",     "")
+        t_end     = body.get("end",       "")
+
+        try:
+            from .poster_renderer import render_poster_png
+            png = render_poster_png(template, channel, daypart, title, presenter, t_start, t_end)
+        except Exception as exc:
+            return jsonify({"error": str(exc)}), 500
+
+        safe_title = "".join(c for c in title if c.isalnum() or c in " -_")[:40].strip() or "poster"
+        filename = f"{safe_title.replace(' ', '-').lower()}.png"
+        buf = io.BytesIO(png)
+        buf.seek(0)
+        return send_file(buf, mimetype="image/png", as_attachment=True, download_name=filename)
+
     # ------------------------------------------------------------------ API helpers
 
     @app.route("/api/schedule/<tvg_id>")

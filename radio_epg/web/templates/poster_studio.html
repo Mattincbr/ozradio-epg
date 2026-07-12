@@ -154,10 +154,11 @@
       <div class="ps-caption mt-2">
         <span>Template: <b id="cap-template">Plate</b></span>
         <span>Colourway: <b id="cap-daypart">Auto</b></span>
-        <span style="color:var(--text-muted);font-size:.76rem">
-          Visual preview only — poster generation requires backend integration.
-        </span>
       </div>
+      <button class="btn btn-primary mt-3" id="btn-export" onclick="exportPoster()">
+        <i class="bi bi-download me-1"></i>Download PNG
+      </button>
+      <div id="export-status" class="form-text mt-1" style="min-height:1.2em"></div>
     </div>
   </div>
 </div>
@@ -373,6 +374,48 @@ function getDpLabel() {
 function esc(s) {
   return String(s)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function exportPoster() {
+  const btn = document.getElementById('btn-export');
+  const status = document.getElementById('export-status');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Rendering…';
+  status.textContent = '';
+  try {
+    const resp = await fetch('/api/poster-export', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        template:  activeTemplate,
+        channel:   activeChannel,
+        daypart:   activeDaypart,
+        title:     document.getElementById('preview-title').value,
+        presenter: document.getElementById('preview-presenter').value,
+        start:     document.getElementById('preview-start').value,
+        end:       document.getElementById('preview-end').value,
+      }),
+    });
+    if (!resp.ok) {
+      const err = await resp.json().catch(() => ({}));
+      throw new Error(err.error || `Server error ${resp.status}`);
+    }
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const title = document.getElementById('preview-title').value || 'poster';
+    a.href = url;
+    a.download = title.replace(/[^a-z0-9]/gi, '-').toLowerCase() + '.png';
+    a.click();
+    URL.revokeObjectURL(url);
+    status.textContent = '1280 × 720 px PNG downloaded.';
+  } catch (e) {
+    status.style.color = 'var(--bs-danger)';
+    status.textContent = 'Export failed: ' + e.message;
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-download me-1"></i>Download PNG';
+  }
 }
 
 updatePoster();
